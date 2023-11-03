@@ -2,22 +2,25 @@
 
 namespace App\Http\Controllers\Tutors;
 
-use App\Http\Controllers\Controller;
+use Storage;
+use App\Models\User;
 use App\Models\Tutor;
-use App\Models\TutorExperience;
-use App\Models\TutorsCertification;
-use App\Models\TutorsIdentities;
-use App\Models\TutorsQualification;
+use App\Models\Learner;
+use App\Models\ParentUser;
+use Illuminate\Support\Str;
 use App\Models\TutorSubject;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
+use App\Models\TutorExperience;
+use App\Models\TutorsIdentities;
+use Illuminate\Support\Facades\DB;
+use App\Models\TutorsCertification;
+use App\Models\TutorsQualification;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
-use Storage;
 
 ini_set('max_execution_time', 180); // 3 minutes
 
@@ -251,6 +254,7 @@ class TutorController extends Controller
             'address' => $request->address,
             'photo' => $base_path,
             'address' => $request->current_location,
+            'user_type' => 'tutor',
         ]);
 
         if(!$user->id){
@@ -411,4 +415,75 @@ class TutorController extends Controller
             ], Response::HTTP_CREATED
         );
     }
+
+    public function details(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+        ]); // request body validation rules
+
+        if($fields->fails()){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => $fields->messages(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+        
+        $auth = auth()->user()->id;
+        
+        $user = DB::table('users as u')
+        ->leftJoin('parent_user as p', function ($join){
+            $join->on('u.id', '=', 'p.user_id');
+        })
+        ->where('u.id', $auth)->first();
+
+        $parent = ParentUser::where('user_id', $auth)->first();
+
+        $learners = DB::table('learners As l')
+            ->leftJoin('lessons As ls', function($join){
+                $join->on('l.id', '=', 'ls.learner_id');
+                $join->on('l.parent_id', '=', 'ls.parent_id');
+            })
+            ->leftJoin('lesson_subjects As lss', function($join){
+                $join->on('l.id', '=', 'lss.learner_id');
+                $join->on('l.parent_id', '=', 'lss.parent_id');
+                $join->on('ls.id', '=', 'lss.learner_lesson_id');
+            })
+            ->leftJoin('subjects As s', function($join){
+                $join->on('ls.education_level_subject_id', '=', 's.id');
+            })
+            ->leftJoin('education_levels As el', function($join){
+                $join->on('s.education_level_id', '=', 'el.id');
+            })
+            ->leftJoin('lesson_feedback As lf', function($join){
+                $join->on('lss.learner_lesson_id', '=', 'lf.learner_lesson_id');
+                $join->on('lss.id', '=', 'lf.learner_lesson_subject_id');
+            })
+            ->leftJoin('lesson_feedback_reply As lfr', function($join){
+                $join->on('lf.id', '=', 'lfr.lesson_feedback_id');
+            })
+            ->leftJoin('lesson_subjects_timetable As lsst', function($join){
+                $join->on('l.id', '=', 'lsst.learner_id');
+                $join->on('l.parent_id', '=', 'lsst.parent_id');
+                $join->on('ls.id', '=', 'lsst.learner_lesson_id');
+                $join->on('lss.id', '=', 'lsst.learner_lesson_subject_id');
+            })
+            ->leftJoin('lesson_day As ld', function($join){
+                $join->on('lsst.lesson_day_id', '=', 'ld.id');
+            })
+            ->where('l.parent_id', '=', $parent->id)
+            ->get();
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'User Found',
+            'data' => [
+                'parent' => $user,
+                'learners' => $learners,
+            ]
+        ], Response::HTTP_OK);
+    } 
 }

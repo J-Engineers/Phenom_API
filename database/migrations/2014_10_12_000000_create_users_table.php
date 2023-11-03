@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_admin');
             $table->integer('verify_token');
             $table->boolean('verify_email');
+            $table->string('user_type');
             $table->string('title')->nullable();
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();

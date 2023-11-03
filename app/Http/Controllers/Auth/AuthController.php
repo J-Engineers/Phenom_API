@@ -102,6 +102,7 @@ class AuthController extends Controller
                 "id" => $user->id,
                 "is_admin" => $is_admin ? true : false,
                 "verification" => $user->verify_email ? true : false,
+                "user_type" => $user->user_type,
             ]
         ], Response::HTTP_OK); // returning response
     }
@@ -190,6 +191,7 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'verify_token' => $verify_token,
             'verify_email' => false,
+            'user_type' => 'admin',
         ]);
 
         if(auth()->user()){

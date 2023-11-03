@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EducationLevels;
 use App\Http\Controllers\Controller;
+use App\Models\LessonDay;
 use App\Models\Subjects;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
@@ -149,6 +150,32 @@ class PublicController extends Controller
             'id' => $request->subject_id,
             'education_levels_id' => $request->level_id
         ])->first();
+       
+
+        return response()->json([
+            'status_code' => Response::HTTP_CREATED,
+            'status' => 'success',
+            'message' => 'Found Subjects',
+            'data' => $search_education
+        ], Response::HTTP_CREATED);
+    }
+
+    public function viewLessonDays(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+        ]); // request body validation rules
+
+        if($fields->fails()){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => $fields->messages(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+
+        $search_education = LessonDay::all();
        
 
         return response()->json([

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Models\EducationLevels;
 use App\Http\Controllers\Controller;
+use App\Models\LessonDay;
 use App\Models\Subjects;
 use App\Models\TutorSubject;
 use Symfony\Component\HttpFoundation\Response;
@@ -486,6 +487,166 @@ class LevelsSubjectsController extends Controller
             'status_code' => Response::HTTP_CREATED,
             'status' => 'success',
             'message' => 'Subject Deleted',
+            'data' => []
+        ], Response::HTTP_CREATED);
+    }
+
+    public function createDay(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'api_key' => 'required|string'
+        ]); // request body validation rules
+
+        if($fields->fails()){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => $fields->messages(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $search_subject = LessonDay::where(
+            ['day_name'=> $request->name]
+        )->first();
+        if($search_subject){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Day Already Exist'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $created = LessonDay::create(
+            [
+                'id' => (string)Str::uuid(),
+                'day_name' =>  $request->name
+            ]
+        );
+
+        return response()->json([
+            'status_code' => Response::HTTP_CREATED,
+            'status' => 'success',
+            'message' => 'Day Created',
+            'data' => $created
+        ], Response::HTTP_CREATED);
+    }
+
+    public function editDay(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'day_id' => 'required|string',
+            'api_key' => 'required|string'
+        ]); // request body validation rules
+
+        if($fields->fails()){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => $fields->messages(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $search_subject_id = LessonDay::where(
+            ['id'=> $request->day_id]
+        )->first();
+        if(!$search_subject_id){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Day Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+
+        $search_subject = LessonDay::where(
+            ['day_name'=> $request->name]
+        )->first();
+        if($search_subject){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Day Already Exist'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $search_subject_id->update(
+            [
+                'day_name' =>  $request->name
+            ]
+        );
+
+        return response()->json([
+            'status_code' => Response::HTTP_CREATED,
+            'status' => 'success',
+            'message' => 'Day Updated',
+            'data' => $search_subject_id
+        ], Response::HTTP_CREATED);
+    }
+
+    public function deleteDay(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+            'day_id' => 'required|string'
+        ]); // request body validation rules
+
+        if($fields->fails()){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => $fields->messages(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $search_subject = LessonDay::where(
+            ['id' => $request->day_id]
+        )->first();
+        if(!$search_subject){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Day Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $search_subject->delete();
+
+        return response()->json([
+            'status_code' => Response::HTTP_CREATED,
+            'status' => 'success',
+            'message' => 'Day Deleted',
             'data' => []
         ], Response::HTTP_CREATED);
     }

@@ -226,12 +226,17 @@ class AdminController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $search_user = User::where('id', $request->user_id)->first();
+        $search_user = User::where(
+            [
+                ['id', $request->user_id],
+                ['user_type', 'admin'],
+            ]
+        )->first();
         if(!$search_user){
             return response()->json([
                 'status_code' => Response::HTTP_NOT_FOUND,
                 'status' => 'error',
-                'message' => 'User Not Found'
+                'message' => 'User Not Found or User not an admin'
             ], Response::HTTP_NOT_FOUND);
         }
 

@@ -420,7 +420,8 @@ class AuthController extends Controller
         return response()->json([
             'status_code' => Response::HTTP_OK,
             'status' => 'success',
-            'message' => 'Token Sent to users Email'
+            'message' => 'Token Sent to users Email',
+            'token' => $otp
         ], Response::HTTP_OK);
     }
 

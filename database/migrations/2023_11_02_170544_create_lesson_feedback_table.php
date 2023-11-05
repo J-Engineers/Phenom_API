@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('lesson_feedback', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('learner_lesson_id');
-            $table->foreign('learner_lesson_id')->references('id')->on('lessons')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('learner_lesson_subject_id');
-            $table->foreign('learner_lesson_subject_id')->references('id')->on('lesson_subjects')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('parent_tutor');
+            $table->uuid('lesson_subject_id');
+            $table->foreign('lesson_subject_id')->references('id')->on('lesson_subjects')->onDelete('cascade')->onUpdate('cascade');
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('parent_tutor');
             $table->text('feedback');
             $table->timestamps();
         });

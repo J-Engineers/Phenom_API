@@ -12,11 +12,14 @@ use App\Models\LessonSubject;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\LessonLearner;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\LessonSubjectTimetable;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\Lesson;
+
 
 class ParentAuthController extends Controller
 {
@@ -50,6 +53,7 @@ class ParentAuthController extends Controller
             'lesson_mode' => 'required|string',
             'lesson_period' => 'required|string',
             'description_of_learner' => 'required|string',
+            'lesson_commence' => 'required|string',
             'education_level_id' => 'required|string|exists:education_levels,id',
            
             'total_subjects' => 'required|integer',
@@ -108,7 +112,7 @@ class ParentAuthController extends Controller
             return response()->json([
                 'status_code' => Response::HTTP_UNAUTHORIZED,
                 'status' => 'error',
-                'message' => 'Email Taken',
+                'message' => 'Email Taken, Kindly login or recover your passward',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -132,7 +136,7 @@ class ParentAuthController extends Controller
             return response()->json([
                'status_code' => Response::HTTP_NOT_FOUND,
                'status' => 'error',
-               'message' => 'Mail Not Sent',
+               'message' => 'Mail Not Sent, try again later',
                'data' => $request
             ], Response::HTTP_NOT_FOUND);
         }
@@ -140,7 +144,7 @@ class ParentAuthController extends Controller
 
         $password = Hash::make($temporal_password);
         $user = User::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'user_name' => str_split($request->firstname)[0]." ".str_split($request->lastname)[0],
             'email' => $request->email,
             'is_admin' => false,
@@ -158,6 +162,8 @@ class ParentAuthController extends Controller
             'address' => $request->address." ".$request->state." ".$request->country,
         ]);
 
+        $user['temporal_passward'] = $temporal_password;
+
         if(!$user->id){
             return response()->json([
                 'status_code' => Response::HTTP_UNAUTHORIZED,
@@ -167,13 +173,28 @@ class ParentAuthController extends Controller
         }
 
         $parent = ParentUser::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'how_did_you_know_us' => $request->how_did_you_know_about_us,
             'user_id' => $user->id,
         ]);
 
+        $saerch_parent = Learner::where(
+            [
+                ['learners_name', '=', $request->learners_name],
+                ['parent_id', '=', $parent->id],
+            ]
+        )->first();
+
+        if($saerch_parent){
+            return response()->json([
+                'status_code' => Response::HTTP_UNAUTHORIZED,
+                'status' => 'error',
+                'message' => 'Learner Already Exist, Login and add learner to a lesson',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
         $learner = Learner::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'parent_id' => $parent->id,
             'learners_name' => $request->learners_name,
             'learners_dob' => $request->learners_dob,
@@ -181,15 +202,20 @@ class ParentAuthController extends Controller
         ]);
 
         $lesson = Lessons::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'parent_id' => $parent->id,
-            'learner_id' => $learner->id,
             'lesson_address' => $request->lesson_address,
             'lesson_goals' => $request->lesson_goals,
             'lesson_mode' => $request->lesson_mode,
             'lesson_period' => $request->lesson_period,
-            'description_of_learner' => $request->description_of_learner,
-            'education_level_id' => $request->education_level_id,
+        ]);
+
+        $lesson_learner = LessonLearner::create([
+            'id' => (string)Str::uuid(),
+            'lesson_id' => $lesson->id,
+            'learner_id' => $learner->id,
+            'learners_description' => $request->description_of_learner,
+            'lesson_commence' => $request->lesson_commence,
         ]);
 
         
@@ -205,14 +231,11 @@ class ParentAuthController extends Controller
 
             
             $education_level = LessonSubject::create([
-                'uuid' => (string)Str::uuid(),
-                'parent_id' => $parent->id,
-                'learner_id' => $learner->id,
-                'learner_lesson_id' => $lesson->id,
-                'education_level_id' => $request->education_level_id,
-                'education_level_subject_id' => $request->$subject_id,
-                'learner_lesson_tutor_gender' => $request->$tutor_gender,
-                'learner_lesson_tutor_type' => $request->$tutor_type,
+                'id' => (string)Str::uuid(),
+                'lesson_learner_id' => $lesson_learner->id,
+                'subject_id' => $request->$subject_id,
+                'learner_tutor_gender' => $request->$tutor_gender,
+                'learner_tutor_type' => $request->$tutor_type,
             ]);
 
             for ($i_total_day=1; $i_total_day <= $request->$total_days; $i_total_day++) {
@@ -223,11 +246,8 @@ class ParentAuthController extends Controller
                 $start_time = "start_time_".$i_total_day.'_'.$i_subjects;
 
                 LessonSubjectTimetable::create([
-                    'uuid' => (string)Str::uuid(),
-                    'parent_id' => $parent->id,
-                    'learner_id' => $learner->id,
-                    'learner_lesson_id' => $lesson->id,
-                    'learner_lesson_subject_id' => $education_level->id,
+                    'id' => (string)Str::uuid(),
+                    'lesson_subject_id' => $education_level->id,
                     'lesson_day_id' => $request->$day_id,
                     'lesson_day_hours' => $request->$day_hours,
                     'lesson_day_start_time' => $request->$start_time,
@@ -235,18 +255,8 @@ class ParentAuthController extends Controller
             }
         }
 
-        $learner_subject = DB::table('lesson_subjects As subject')
-            ->leftJoin('lesson_subjects_timetable As timetable', function($join){
-                $join->on('subject.id', '=', 'timetable.learner_lesson_subject_id');
-                $join->on('subject.parent_id', '=', 'timetable.parent_id');
-                $join->on('subject.learner_id', '=', 'timetable.learner_id');
-                $join->on('subject.learner_lesson_id', '=', 'timetable.learner_lesson_id');
-            })
-            ->where('subject.parent_id', '=', $parent->id)
-            ->where('subject.learner_id', '=', $learner->id)
-            ->where('subject.learner_lesson_id', '=', $lesson->id)
-            ->where('subject.education_level_id', '=', $request->education_level_id)
-            ->get();
+        $learners = Lesson::dashboard($parent->id);
+        
 
         return response()->json(
             [
@@ -256,9 +266,7 @@ class ParentAuthController extends Controller
                 'data' => [
                     'user' => $user,
                     'parent' => $parent,
-                    'learner' => $learner,
-                    'lesson' => $lesson,
-                    'subjects' => $learner_subject
+                    'learners' => $learners,
                 ]
             ], Response::HTTP_CREATED
         );

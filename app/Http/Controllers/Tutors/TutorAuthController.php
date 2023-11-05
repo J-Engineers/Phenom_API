@@ -236,7 +236,7 @@ class TutorAuthController extends Controller
 
         $password = Hash::make($temporal_password);
         $user = User::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'user_name' => str_split($request->firstname)[0]." ".str_split($request->lastname)[0],
             'email' => $request->email,
             'is_admin' => false,
@@ -255,6 +255,7 @@ class TutorAuthController extends Controller
             'address' => $request->current_location,
             'user_type' => 'tutor',
         ]);
+        $user['temporal_password'] = $temporal_password;
 
         if(!$user->id){
             return response()->json([
@@ -265,7 +266,7 @@ class TutorAuthController extends Controller
         }
 
         $tutor = Tutor::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'delivery_mode' => $request->mode,
             'birthday' => $request->birthday,
             'nationality' => $request->nationality,
@@ -282,7 +283,7 @@ class TutorAuthController extends Controller
             $years_of_exp = "years_of_experience_".$i_experience;
 
             TutorExperience::create([
-                'uuid' => (string)Str::uuid(),
+                'id' => (string)Str::uuid(),
                 'experience' => $request->$experience,
                 'years_of_experience' => $request->$years_of_exp,
                 'user_id' => $user->id,
@@ -309,7 +310,7 @@ class TutorAuthController extends Controller
             $base_path = $disk->url($filePath);
 
             TutorsCertification::create([
-                'uuid' => (string)Str::uuid(),
+                'id' => (string)Str::uuid(),
                 'organization' => $request->$organization,
                 'course' => $request->$course,
                 'duration' => $request->$duration,
@@ -337,7 +338,7 @@ class TutorAuthController extends Controller
             $base_path = $disk->url($filePath);
 
             TutorsIdentities::create([
-                'uuid' => (string)Str::uuid(),
+                'id' => (string)Str::uuid(),
                 'name' => $request->$id_name,
                 'acquired_date' => $request->$acquired_date,
                 'expiration_date' => $request->$expiration_date,
@@ -367,7 +368,7 @@ class TutorAuthController extends Controller
             $base_path = $disk->url($filePath);
 
             TutorsQualification::create([
-                'uuid' => (string)Str::uuid(),
+                'id' => (string)Str::uuid(),
                 'university' => $request->$university,
                 'course' => $request->$course,
                 'country' => $request->$country,
@@ -388,7 +389,7 @@ class TutorAuthController extends Controller
             $subject_id = "subject_id_".$i_sub;
 
             TutorSubject::create([
-                'uuid' => (string)Str::uuid(),
+                'id' => (string)Str::uuid(),
                 'hours_per_week' => $request->$hours_per_week,
                 'user_id' => $user->id,
                 'level_id' => $request->$level_id,

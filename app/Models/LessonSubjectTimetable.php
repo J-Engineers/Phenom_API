@@ -19,10 +19,7 @@ class LessonSubjectTimetable extends Model
     * @var array<int, string>ß
     */
     protected $fillable = [
-        'parent_id',
-        'learner_id',
-        'learner_lesson_id',
-        'learner_lesson_subject_id',
+        'lesson_subject_id',
         'lesson_day_id',
         'lesson_day_hours',
         'lesson_day_start_time',

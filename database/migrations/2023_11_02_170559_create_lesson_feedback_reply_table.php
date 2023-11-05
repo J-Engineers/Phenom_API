@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('lesson_feedback_reply', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('lesson_feedback_id');
-            $table->foreign('lesson_feedback_id')->references('id')->on('lesson_feedback')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('parent_tutor_admin');
+            $table->uuid('feedback_id');
+            $table->foreign('feedback_id')->references('id')->on('lesson_feedback')->onDelete('cascade')->onUpdate('cascade');
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('parent_tutor_admin');
             $table->text('response_reply');
             $table->text('response_status');
             $table->timestamps();

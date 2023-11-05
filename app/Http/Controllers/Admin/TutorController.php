@@ -53,7 +53,7 @@ class TutorController extends Controller
         ->select(
             't.user_id as user_id',
             'u.email as tutor_email',
-            'ls.learner_lesson_status as assigned_status',
+            'ls.learner_status as assigned_status',
         )
         ->get();
 

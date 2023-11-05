@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Learner;
-use App\Models\LessonFeedback;
-use App\Models\LessonFeedbackReply;
-use App\Models\Lessons;
-use App\Models\LessonSubject;
-use App\Models\LessonSubjectTimetable;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use App\Models\ParentUser;
-use App\Models\Tutor;
 use App\Models\User;
+use App\Models\Tutor;
+use App\Helpers\Lesson;
+use App\Models\Learner;
+use App\Models\Lessons;
+use App\Models\ParentUser;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\LessonLearner;
+use App\Models\LessonSubject;
+use App\Models\LessonFeedback;
 use Illuminate\Support\Facades\DB;
+use App\Models\LessonFeedbackReply;
+use App\Http\Controllers\Controller;
+use App\Models\LessonSubjectTimetable;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -27,8 +29,6 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'learners_id' => 'required|string|exists:learners,id',
-            'lesson_id' => 'required|string|exists:lessons,id',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
             'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
@@ -65,88 +65,8 @@ class LessonController extends Controller
         })
         ->where('u.id', $request->user_id)->get();
 
-        
-
-        $my_lesson = DB::table('learners As l')
-            ->leftJoin('lessons As ls', function($join){
-                $join->on('l.id', '=', 'ls.learner_id');
-                $join->on('l.parent_id', '=', 'ls.parent_id');
-            })
-            ->leftJoin('lesson_subjects As lss', function($join){
-                $join->on('l.id', '=', 'lss.learner_id');
-                $join->on('l.parent_id', '=', 'lss.parent_id');
-                $join->on('ls.id', '=', 'lss.learner_lesson_id');
-            })
-            ->leftJoin('users As u', function($join){
-                $join->on('lss.tutor_id', '=', 'u.id');
-            })
-            ->leftJoin('subjects As s', function($join){
-                $join->on('lss.education_level_subject_id', '=', 's.id');
-            })
-            ->leftJoin('lesson_subjects_timetable As lsst', function($join){
-                $join->on('l.id', '=', 'lsst.learner_id');
-                $join->on('l.parent_id', '=', 'lsst.parent_id');
-                $join->on('ls.id', '=', 'lsst.learner_lesson_id');
-                $join->on('lss.id', '=', 'lsst.learner_lesson_subject_id');
-            })
-            ->leftJoin('lesson_day As ld', function($join){
-                $join->on('lsst.lesson_day_id', '=', 'ld.id');
-            })
-            ->where(
-                [
-                    ['l.id', '=', $request->learners_id],
-                    ['ls.id', '=', $request->lesson_id],
-                ]
-            )
-            ->select('l.learners_name', 'l.learners_dob as learners_date_of_birth', 'l.learners_gender', 'l.id as learners_id',
-                'ls.lesson_address', 'ls.lesson_goals', 'ls.lesson_mode', 'ls.lesson_period', 'ls.description_of_learner as learners_description', 'ls.id as lesson_id',
-                'lss.learner_lesson_tutor_gender as tutors_gender', 'lss.learner_lesson_tutor_type as tutors_type', 'lss.learner_lesson_status as learners_status', 'lss.tutor_lesson_status as tutors_status',
-                'u.first_name as tutors_firstname', 'u.last_name as tutors_lastname',
-                's.name as subject_name', 'lss.id as lesson_subject_id',
-                'ld.day_name as lesson_day', 'lsst.lesson_day_hours', 'lsst.lesson_day_start_time',
-            
-            )
-            ->get();
-
-        $lesson = [];
-        $feedbacks = [];
-        foreach ($my_lesson as $my_lesson_value) {
-         
-            array_push($lesson, $my_lesson_value);
-
-            $feedback = DB::table('lesson_feedback as lf')
-            ->leftJoin('users As u', function($join){
-                $join->on('u.id', '=', 'lf.user_id');
-            })
-           
-            ->where(
-                [
-                    ['lf.learner_lesson_id', '=', $my_lesson_value->lesson_id],
-                ]
-            )->select(
-                'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
-                'lf.feedback', 'lf.id as feedback_id',
-            )->get();
-            foreach($feedback as $feedback_value){
-                $packey = [];
-                $packey['feedback'] = $feedback_value;
-                $feedbacks_reply = DB::table('lesson_feedback_reply as lfr')
-                ->leftJoin('users As u', function($join){
-                    $join->on('u.id', '=', 'lfr.user_id');
-                })
-                ->where(
-                    [
-                        ['lfr.lesson_feedback_id', '=',  $feedback_value->feedback_id],
-                    ]
-                )->select(
-                    'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
-                    'lfr.response_reply', 'lfr.id as feedback_reply_id',
-                )->get();
-
-                $packey['reply'] = $feedbacks_reply;
-                array_push($feedbacks, $packey);
-            }
-        }
+        $parent = ParentUser::where('user_id', '=', $request->user_id)->first();
+        $lessons = Lesson::lessons($parent->id, $request->lesson_subject_id);
 
         return response()->json([
             'status_code' => Response::HTTP_OK,
@@ -154,8 +74,7 @@ class LessonController extends Controller
             'message' => 'Parent Learner Lesson',
             'data' => [
                 'parent' => $user_parent,
-                'lesson' => $lesson,
-                'feedbacks' => $feedbacks,
+                'lessons' => $lessons,
             ]
         ], Response::HTTP_OK);
     }
@@ -164,7 +83,6 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'lesson_id' => 'required|string|exists:lessons,id',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
             'feedback' => 'required|string',
             'user_id' => 'required|string|exists:users,id'
@@ -190,8 +108,7 @@ class LessonController extends Controller
        
         LessonFeedback::create(
             [
-                'learner_lesson_id' => $request->lesson_id,
-                'learner_lesson_subject_id' => $request->lesson_subject_id,
+                'lesson_subject_id' => $request->lesson_subject_id,
                 'parent_tutor' => 'admin',
                 'user_id' => $user->id,
                 'feedback' => $request->feedback,
@@ -211,11 +128,8 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'lesson_id' => 'required|string|exists:lessons,id',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
             'feedback_id' => 'required|string|exists:lesson_feedback,id',
             'feedback_reply' => 'required|string',
-            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -238,7 +152,7 @@ class LessonController extends Controller
     
         LessonFeedbackReply::create(
             [
-                'lesson_feedback_id' => $request->feedback_id,
+                'feedback_id' => $request->feedback_id,
                 'parent_tutor_admin' => 'admin',
                 'user_id' => $user->id,
                 'response_reply' => $request->feedback_reply,
@@ -260,7 +174,6 @@ class LessonController extends Controller
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -280,19 +193,8 @@ class LessonController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
         
-        $request_user = User::where('id', '=', $request->user_id)->first();
-        if(!($request_user->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Not a parent',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $request->user_id)->first();
         $lesson = LessonSubject::where(
             [
-                ['parent_id', '=', $parent->id],
                 ['id', '=', $request->lesson_subject_id],
             ]
         )->first();
@@ -333,6 +235,7 @@ class LessonController extends Controller
             'lesson_period' => 'required|string',
             'description_of_learner' => 'required|string',
             'education_level_id' => 'required|string|exists:education_levels,id',
+            'lesson_commence' => 'required|string',
             'user_id' => 'required|string|exists:users,id',
 
            
@@ -405,7 +308,7 @@ class LessonController extends Controller
         }
 
         $learner = Learner::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'parent_id' => $parent->id,
             'learners_name' => $request->learners_name,
             'learners_dob' => $request->learners_dob,
@@ -413,16 +316,25 @@ class LessonController extends Controller
         ]);
 
         $lesson = Lessons::create([
-            'uuid' => (string)Str::uuid(),
+            'id' => (string)Str::uuid(),
             'parent_id' => $parent->id,
-            'learner_id' => $learner->id,
             'lesson_address' => $request->lesson_address,
             'lesson_goals' => $request->lesson_goals,
             'lesson_mode' => $request->lesson_mode,
             'lesson_period' => $request->lesson_period,
-            'description_of_learner' => $request->description_of_learner,
-            'education_level_id' => $request->education_level_id,
         ]);
+
+        $lesson_learner = LessonLearner::create([
+            'id' => (string)Str::uuid(),
+            'lesson_id' => $lesson->id,
+            'learner_id' => $learner->id,
+            'learners_description' => $request->description_of_learner,
+            'lesson_commence' => $request->lesson_commence,
+        ]);
+
+        $parent = ParentUser::where('user_id', '=', $request->user_id)->first();
+
+        $all_lessons = [];
 
         for ($i_subjects=1; $i_subjects <= $request->total_subjects; $i_subjects++) {
 
@@ -435,13 +347,10 @@ class LessonController extends Controller
             
             $education_level = LessonSubject::create([
                 'uuid' => (string)Str::uuid(),
-                'parent_id' => $parent->id,
-                'learner_id' => $learner->id,
-                'learner_lesson_id' => $lesson->id,
-                'education_level_id' => $request->education_level_id,
-                'education_level_subject_id' => $request->$subject_id,
-                'learner_lesson_tutor_gender' => $request->$tutor_gender,
-                'learner_lesson_tutor_type' => $request->$tutor_type,
+                'lesson_learner_id' => $lesson_learner->id,
+                'subject_id' => $request->$subject_id,
+                'learner_tutor_gender' => $request->$tutor_gender,
+                'learner_tutor_type' => $request->$tutor_type,
             ]);
 
             for ($i_total_day=1; $i_total_day <= $request->$total_days; $i_total_day++) {
@@ -452,30 +361,18 @@ class LessonController extends Controller
                 $start_time = "start_time_".$i_total_day.'_'.$i_subjects;
 
                 LessonSubjectTimetable::create([
-                    'uuid' => (string)Str::uuid(),
-                    'parent_id' => $parent->id,
-                    'learner_id' => $learner->id,
-                    'learner_lesson_id' => $lesson->id,
-                    'learner_lesson_subject_id' => $education_level->id,
+                    'id' => (string)Str::uuid(),
+                    'lesson_subject_id' => $education_level->id,
                     'lesson_day_id' => $request->$day_id,
                     'lesson_day_hours' => $request->$day_hours,
                     'lesson_day_start_time' => $request->$start_time,
                 ]);
             }
+            $lessons = Lesson::lessons($parent->id, $education_level->id);
+            array_push($all_lessons, $lessons);
         }
 
-        $learner_subject = DB::table('lesson_subjects As subject')
-        ->leftJoin('lesson_subjects_timetable As timetable', function($join){
-            $join->on('subject.id', '=', 'timetable.learner_lesson_subject_id');
-            $join->on('subject.parent_id', '=', 'timetable.parent_id');
-            $join->on('subject.learner_id', '=', 'timetable.learner_id');
-            $join->on('subject.learner_lesson_id', '=', 'timetable.learner_lesson_id');
-        })
-        ->where('subject.parent_id', '=', $parent->id)
-        ->where('subject.learner_id', '=', $learner->id)
-        ->where('subject.learner_lesson_id', '=', $lesson->id)
-        ->where('subject.education_level_id', '=', $request->education_level_id)
-        ->get();
+        
 
         return response()->json(
             [
@@ -483,9 +380,7 @@ class LessonController extends Controller
                 'status' => 'success',
                 'message' => 'Created a lesson',
                 'data' => [
-                    'learner' => $learner,
-                    'lesson' => $lesson,
-                    'subjects' => $learner_subject
+                    'lessons' => $all_lessons
                 ]
             ], Response::HTTP_CREATED
         );
@@ -496,7 +391,6 @@ class LessonController extends Controller
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'user_id' => 'required|string|exists:users,id'
 
         ]); // request body validation rules
 
@@ -518,10 +412,8 @@ class LessonController extends Controller
         }
         
        
-        $parent = ParentUser::where('user_id', $request->user_id)->first();
         $lesson = LessonSubject::where(
             [
-                ['parent_id', '=', $parent->id],
                 ['id', '=', $request->lesson_subject_id],
             ]
         )->first();
@@ -549,9 +441,7 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'lesson_id' => 'required|string|exists:lessons,id',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'parent_id' => 'required|string|exists:users,id',
             'tutor_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
@@ -585,12 +475,6 @@ class LessonController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $request_parent_user = ParentUser::where(
-            [
-                ['user_id', '=', $request->parent_id],
-            ]
-        )->select('id')->first();
-
 
         $request_tutor_user = Tutor::where(
             [
@@ -601,8 +485,6 @@ class LessonController extends Controller
         $lesson = LessonSubject::where(
             [
                 ['id', '=', $request->lesson_subject_id],
-                ['learner_lesson_id', '=', $request->lesson_id],
-                ['parent_id', '=', $request_parent_user->id],
             ]
         )->first();
 
@@ -639,10 +521,7 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'lesson_id' => 'required|string|exists:lessons,id',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'parent_id' => 'required|string|exists:users,id',
-            'tutor_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -662,37 +541,11 @@ class LessonController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
         
-        $request_user = User::where(
-            [
-                ['id', '=', $request->tutor_id],
-            ]
-        )->first();
-        if(!($request_user->user_type == 'tutor')){
-            return response()->json([
-                'status_code' => Response::HTTP_NOT_FOUND,
-                'status' => 'error',
-                'message' => 'Not a tutor'
-            ], Response::HTTP_NOT_FOUND);
-        }
-
-        $request_parent_user = ParentUser::where(
-            [
-                ['user_id', '=', $request->parent_id],
-            ]
-        )->select('id')->first();
-
-
-        $request_tutor_user = Tutor::where(
-            [
-                ['user_id', '=', $request->tutor_id],
-            ]
-        )->select('id')->first();
+       
 
         $lesson = LessonSubject::where(
             [
                 ['id', '=', $request->lesson_subject_id],
-                ['learner_lesson_id', '=', $request->lesson_id],
-                ['parent_id', '=', $request_parent_user->id],
             ]
         )->first();
 
@@ -721,9 +574,7 @@ class LessonController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'lesson_id' => 'required|string|exists:lessons,id',
             'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'parent_id' => 'required|string|exists:users,id',
             'tutor_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
@@ -757,13 +608,6 @@ class LessonController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $request_parent_user = ParentUser::where(
-            [
-                ['user_id', '=', $request->parent_id],
-            ]
-        )->select('id')->first();
-
-
         $request_tutor_user = Tutor::where(
             [
                 ['user_id', '=', $request->tutor_id],
@@ -773,8 +617,6 @@ class LessonController extends Controller
         $lesson = LessonSubject::where(
             [
                 ['id', '=', $request->lesson_subject_id],
-                ['learner_lesson_id', '=', $request->lesson_id],
-                ['parent_id', '=', $request_parent_user->id],
             ]
         )->first();
 
@@ -785,8 +627,6 @@ class LessonController extends Controller
                 'message' => 'Lesson Not Found'
             ], Response::HTTP_NOT_FOUND);
         }
-
-       
 
         $lesson->update(
             ['tutor_id' => $request_tutor_user->id]

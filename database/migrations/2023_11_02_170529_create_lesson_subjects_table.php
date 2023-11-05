@@ -13,22 +13,16 @@ return new class extends Migration
     {
         Schema::create('lesson_subjects', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('parent_id');
-            $table->foreign('parent_id')->references('id')->on('parent_user')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('learner_id');
-            $table->foreign('learner_id')->references('id')->on('learners')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('learner_lesson_id');
-            $table->foreign('learner_lesson_id')->references('id')->on('lessons')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('education_level_id');
-            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('education_level_subject_id');
-            $table->foreign('education_level_subject_id')->references('id')->on('subjects')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('learner_lesson_tutor_gender');
-            $table->string('learner_lesson_tutor_type');
-            $table->string('learner_lesson_status')->nullable();
+            $table->uuid('lesson_learner_id');
+            $table->foreign('lesson_learner_id')->references('id')->on('lesson_learner')->onDelete('cascade')->onUpdate('cascade');
+            $table->uuid('subject_id');
+            $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('learner_tutor_gender');
+            $table->string('learner_tutor_type');
+            $table->string('learner_status')->nullable();
             $table->uuid('tutor_id')->nullable();
             $table->foreign('tutor_id')->references('id')->on('tutors')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('tutor_lesson_status')->nullable();
+            $table->string('tutor_status')->nullable();
             $table->timestamps();
         });
     }

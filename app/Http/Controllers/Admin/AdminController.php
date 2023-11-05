@@ -49,7 +49,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string|exists:education_levels,id'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -83,7 +83,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -118,7 +118,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string|exists:education_levels,id'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -162,7 +162,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string|exists:education_levels,id'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -206,7 +206,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string|exists:education_levels,id'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -255,7 +255,7 @@ class AdminController extends Controller
 
         $fields = Validator::make($request->all(), [
             'api_key' => 'required|string',
-            'user_id' => 'required|string|exists:education_levels,id'
+            'user_id' => 'required|string|exists:users,id'
         ]); // request body validation rules
 
         if($fields->fails()){

@@ -19,8 +19,7 @@ class LessonFeedback extends Model
     * @var array<int, string>
     */
     protected $fillable = [
-        'learner_lesson_id',
-        'learner_lesson_subject_id',
+        'lesson_subject_id',
         'parent_tutor',
         'user_id',
         'feedback',

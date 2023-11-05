@@ -117,15 +117,26 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/v1/tutor/lesson/feedback', [TutorController::class, 'feedback'])->name('tutor.lesson.feedback')->middleware(ActiveUser::class);
     Route::post('/v1/tutor/lesson/feedback/reply', [TutorController::class, 'feedback_reply'])->name('tutor.lesson.feedback.reply')->middleware(ActiveUser::class);
     Route::put('/v1/tutor/lesson/close', [TutorController::class, 'complete_lesson'])->name('tutor.lesson.close')->middleware(ActiveUser::class);
-   
+    Route::put('/v1/tutor/activity/active', [TutorController::class, 'activity_badge'])->name('tutor.activity.active')->middleware(ActiveUser::class);
+    Route::put('/v1/tutor/activity/inactive', [TutorController::class, 'activity_badge_remove'])->name('tutor.activity.inactive')->middleware(ActiveUser::class);
+    Route::post('/v1/tutor/certificate', [TutorController::class, 'add_certification'])->name('tutor.certificate')->middleware(ActiveUser::class);
+    
+    
 
     // Parent Routes
     Route::get('/v1/parent', [ParantController::class, 'details'])->name('parent.details')->middleware(ActiveUser::class);
+    Route::get('/v1/parent/lessons', [ParantController::class, 'lessons'])->name('parent.learners.lessons')->middleware(ActiveUser::class);
     Route::get('/v1/parent/lesson', [ParantController::class, 'lesson'])->name('parent.learners.lesson')->middleware(ActiveUser::class);
     Route::post('/v1/parent/lesson/feedback', [ParantController::class, 'feedback'])->name('parent.lesson.feedback')->middleware(ActiveUser::class);
     Route::post('/v1/parent/lesson/feedback/reply', [ParantController::class, 'feedback_reply'])->name('parent.lesson.feedback.reply')->middleware(ActiveUser::class);
     Route::put('/v1/parent/lesson/close', [ParantController::class, 'complete_lesson'])->name('parent.lesson.close')->middleware(ActiveUser::class);
     Route::post('/v1/parent/lesson/create', [ParantController::class, 'add_lesson'])->name('parent.lesson.create')->middleware(ActiveUser::class);
     Route::delete('/v1/parent/lesson/remove', [ParantController::class, 'remove_lesson'])->name('parent.lesson.remove')->middleware(ActiveUser::class);
-    
+    Route::post('/v1/parent/learner/create', [ParantController::class, 'add_learner'])->name('parent.learner.create')->middleware(ActiveUser::class);
+    Route::delete('/v1/parent/learner/remove', [ParantController::class, 'remove_learner'])->name('parent.learner.remove')->middleware(ActiveUser::class);
+    Route::get('/v1/parent/learners', [ParantController::class, 'learners'])->name('parent.learners')->middleware(ActiveUser::class);
+    Route::get('/v1/parent/learner', [ParantController::class, 'learner'])->name('parent.learner')->middleware(ActiveUser::class);
+    Route::post('/v1/parent/lesson/learner/create', [ParantController::class, 'add_learner_to_lesson'])->name('parent.lesson.learner.add')->middleware(ActiveUser::class);
+    Route::delete('/v1/parent/lesson/learner/remove', [ParantController::class, 'remove_learner_from_lesson'])->name('parent.lesson.learner.remove')->middleware(ActiveUser::class);
+
 });

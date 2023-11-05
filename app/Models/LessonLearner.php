@@ -6,26 +6,23 @@ use App\Traits\Uuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class LessonSubject extends Model
+class LessonLearner extends Model
 {
     use HasFactory;
     use Uuids;
 
-    protected $table = "lesson_subjects";
+    protected $table = "lesson_learner";
 
     /**
     * The attributes that are mass assignable.
     *
-    * @var array<int, string>ß
+    * @var array<int, string>
     */
     protected $fillable = [
-        'lesson_learner_id',
-        'subject_id',
-        'learner_tutor_gender',
-        'learner_tutor_type',
-        'learner_status',
-        'tutor_id',
-        'tutor_status',
+        'lesson_id',
+        'learner_id',
+        'learners_description',
+        'lesson_commence',
     ];
 
     /**

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('status')->nullable();
             $table->text('other_subjects')->nullable();
             $table->text('comment')->nullable();
+            $table->text('activity_badge')->nullable();
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();

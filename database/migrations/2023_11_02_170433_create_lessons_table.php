@@ -15,15 +15,10 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('parent_id');
             $table->foreign('parent_id')->references('id')->on('parent_user')->onDelete('cascade')->onUpdate('cascade');
-            $table->uuid('learner_id');
-            $table->foreign('learner_id')->references('id')->on('learners')->onDelete('cascade')->onUpdate('cascade');
             $table->string('lesson_address');
             $table->text('lesson_goals');
             $table->string('lesson_mode');
             $table->string('lesson_period');
-            $table->text('description_of_learner');
-            $table->uuid('education_level_id');
-            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

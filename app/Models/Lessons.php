@@ -20,13 +20,10 @@ class Lessons extends Model
     */
     protected $fillable = [
         'parent_id',
-        'learner_id',
         'lesson_address',
         'lesson_goals',
         'lesson_mode',
         'lesson_period',
-        'description_of_learner',
-        'education_level_id',
     ];
 
     /**

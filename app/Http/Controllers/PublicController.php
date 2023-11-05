@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\EducationLevels;
 use App\Http\Controllers\Controller;
-use App\Models\LessonDay;
-use App\Models\Subjects;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class PublicController extends Controller
@@ -85,7 +84,16 @@ class PublicController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
         } // request body validation failed, so lets return
 
-        $search_education = Subjects::all();
+
+        $search_education = DB::table('subjects as s')
+        ->leftJoin('education_levels as el', function ($join) {
+            $join->on('s.education_levels_id', '=', 'el.id');
+        })
+        ->select(
+            'el.name as education_level_name', 'el.id as education_level_id',
+            's.name as subject_name', 's.id as subject_id',
+        )
+        ->get();
        
 
         return response()->json([
@@ -113,9 +121,20 @@ class PublicController extends Controller
         } // request body validation failed, so lets return
 
         
-        $search_education = Subjects::where([
-            'id' => $request->subject_id
-        ])->first();
+        
+
+        $search_education = DB::table('subjects as s')
+        ->leftJoin('education_levels as el', function ($join) {
+            $join->on('s.education_levels_id', '=', 'el.id');
+        })
+        ->where([
+            's.id' => $request->subject_id
+        ])
+        ->select(
+            'el.name as education_level_name', 'el.id as education_level_id',
+            's.name as subject_name', 's.id as subject_id',
+        )
+        ->first();
        
 
         return response()->json([
@@ -144,12 +163,20 @@ class PublicController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
         } // request body validation failed, so lets return
 
-       
 
-        $search_education = Subjects::where([
-            'id' => $request->subject_id,
-            'education_levels_id' => $request->level_id
-        ])->first();
+        $search_education = DB::table('subjects as s')
+        ->leftJoin('education_levels as el', function ($join) {
+            $join->on('s.education_levels_id', '=', 'el.id');
+        })
+        ->where([
+            's.id' => $request->subject_id,
+            's.education_levels_id' => $request->level_id
+        ])
+        ->select(
+            'el.name as education_level_name', 'el.id as education_level_id',
+            's.name as subject_name', 's.id as subject_id',
+        )
+        ->get();
        
 
         return response()->json([
@@ -175,7 +202,7 @@ class PublicController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
         } // request body validation failed, so lets return
 
-        $search_education = LessonDay::all();
+        $search_education = DB::table('lesson_day')->select('day_name', 'id')->get();
        
 
         return response()->json([

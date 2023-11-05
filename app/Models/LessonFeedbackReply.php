@@ -19,10 +19,10 @@ class LessonFeedbackReply extends Model
     * @var array<int, string>
     */
     protected $fillable = [
-        'lesson_feedback_id',
+        'feedback_id',
         'parent_tutor_admin',
-        'user_id',
         'response_reply',
+        'user_id',
         'response_status',
     ];
 

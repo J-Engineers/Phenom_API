@@ -28,6 +28,7 @@ class Tutor extends Model
         'status',
         'other_subjects',
         'comment',
+        'activity_badge',
         'user_id'
     ];
 

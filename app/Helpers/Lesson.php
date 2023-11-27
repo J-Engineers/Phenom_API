@@ -25,6 +25,12 @@ class Lesson extends Helpers{
                     ->leftJoin('lesson_subjects As subject', function($join){
                         $join->on('ll.id', '=', 'subject.lesson_learner_id');
                     })
+                    ->leftJoin('parent_user As parent', function($join){
+                        $join->on('parent.id', '=', 'ls.parent_id');
+                    })
+                    ->leftJoin('users As u', function($join){
+                        $join->on('u.id', '=', 'parent.user_id');
+                    })
                     ->where(
                     [
                             ['ll.learner_id', '=', $my_learner->id]
@@ -34,6 +40,7 @@ class Lesson extends Helpers{
                         'subject.learner_tutor_gender as tutor_gender', 'subject.learner_tutor_type as tutor_type', 
                         'll.id as lesson_learner_id', 'll.learners_description as learners_description', 'ls.lesson_address as lesson_address',  'ls.id as lesson_id', 
                         'll.lesson_commence as lesson_commence', 'ls.lesson_goals as lesson_goals', 'ls.lesson_mode as lesson_mode', 'ls.lesson_period as lesson_period',
+                        'u.email as parent_email', 'u.address as parent_address', 'u.id as parent_id'
                     )
                     ->get();
                 }else{
@@ -45,6 +52,12 @@ class Lesson extends Helpers{
                     ->leftJoin('lesson_subjects As subject', function($join){
                         $join->on('ll.id', '=', 'subject.lesson_learner_id');
                     })
+                    ->leftJoin('parent_user As parent', function($join){
+                        $join->on('parent.id', '=', 'ls.parent_id');
+                    })
+                    ->leftJoin('users As u', function($join){
+                        $join->on('u.id', '=', 'parent.user_id');
+                    })
                     ->where(
                     [
                             ['ll.learner_id', '=', $my_learner->id],
@@ -55,6 +68,7 @@ class Lesson extends Helpers{
                         'subject.learner_tutor_gender as tutor_gender', 'subject.learner_tutor_type as tutor_type', 
                         'll.id as lesson_learner_id', 'll.learners_description as learners_description', 'ls.lesson_address as lesson_address',  'ls.id as lesson_id', 
                         'll.lesson_commence as lesson_commence', 'ls.lesson_goals as lesson_goals', 'ls.lesson_mode as lesson_mode', 'ls.lesson_period as lesson_period',
+                        'u.email as parent_email', 'u.address as parent_address', 'u.id as parent_id'
                     )
                     ->get();
                 }
@@ -67,9 +81,14 @@ class Lesson extends Helpers{
                 ->leftJoin('lesson_subjects As subject', function($join){
                     $join->on('ll.id', '=', 'subject.lesson_learner_id');
                 })
-
                 ->leftJoin('lesson_subjects_timetable As lst', function($join){
                     $join->on('lst.lesson_subject_id', '=', 'subject.id');
+                })
+                ->leftJoin('parent_user As parent', function($join){
+                    $join->on('parent.id', '=', 'ls.parent_id');
+                })
+                ->leftJoin('users As u', function($join){
+                    $join->on('u.id', '=', 'parent.user_id');
                 })
                 
                 ->where(
@@ -82,6 +101,7 @@ class Lesson extends Helpers{
                     'subject.learner_tutor_gender as tutor_gender', 'subject.learner_tutor_type as tutor_type', 
                     'll.id as lesson_learner_id', 'll.learners_description as learners_description', 'ls.lesson_address as lesson_address', 'ls.id as lesson_id', 
                     'll.lesson_commence as lesson_commence', 'ls.lesson_goals as lesson_goals', 'ls.lesson_mode as lesson_mode', 'ls.lesson_period as lesson_period',
+                    'u.email as parent_email', 'u.address as parent_address', 'u.id as parent_id'
                 )
                 ->get();
             }elseif($type == 3){
@@ -93,7 +113,12 @@ class Lesson extends Helpers{
                 ->leftJoin('lesson_subjects As subject', function($join){
                     $join->on('ll.id', '=', 'subject.lesson_learner_id');
                 })
-                
+                ->leftJoin('parent_user As parent', function($join){
+                    $join->on('parent.id', '=', 'ls.parent_id');
+                })
+                ->leftJoin('users As u', function($join){
+                    $join->on('u.id', '=', 'parent.user_id');
+                })
                 ->where(
                 [
                         ['ll.learner_id', '=', $my_learner->learner_id],
@@ -103,6 +128,7 @@ class Lesson extends Helpers{
                     'subject.learner_tutor_gender as tutor_gender', 'subject.learner_tutor_type as tutor_type', 
                     'll.id as lesson_learner_id', 'll.learners_description as learners_description', 'ls.lesson_address as lesson_address', 'ls.id as lesson_id', 
                     'll.lesson_commence as lesson_commence', 'ls.lesson_goals as lesson_goals', 'ls.lesson_mode as lesson_mode', 'ls.lesson_period as lesson_period',
+                    'u.email as parent_email', 'u.address as parent_address', 'u.id as parent_id'
                 )
                 ->get();
             }elseif($type == 4){
@@ -114,7 +140,12 @@ class Lesson extends Helpers{
                 ->leftJoin('lesson_subjects As subject', function($join){
                     $join->on('ll.id', '=', 'subject.lesson_learner_id');
                 })
-                
+                ->leftJoin('parent_user As parent', function($join){
+                    $join->on('parent.id', '=', 'ls.parent_id');
+                })
+                ->leftJoin('users As u', function($join){
+                    $join->on('u.id', '=', 'parent.user_id');
+                })
                 ->where(
                 [
                         ['ll.learner_id', '=', $my_learner->learner_id],
@@ -125,6 +156,7 @@ class Lesson extends Helpers{
                     'subject.learner_tutor_gender as tutor_gender', 'subject.learner_tutor_type as tutor_type', 
                     'll.id as lesson_learner_id', 'll.learners_description as learners_description', 'ls.lesson_address as lesson_address',  'ls.id as lesson_id', 
                     'll.lesson_commence as lesson_commence', 'ls.lesson_goals as lesson_goals', 'ls.lesson_mode as lesson_mode', 'ls.lesson_period as lesson_period',
+                    'u.email as parent_email', 'u.address as parent_address', 'u.id as parent_id'
                 )
                 ->get();
             }
@@ -155,7 +187,8 @@ class Lesson extends Helpers{
                 ->select(
                     't.user_id as tutor_user_id', 'u.first_name as tutor_firstname', 'u.last_name as tutor_lastname', 
                     'u.phone as tutor_contact', 's.name as subject_name', 'el.name as level_name',
-                    'ls.learner_status as parent_status', 'ls.tutor_status as tutor_status', 'ls.id as lesson_subject_id', 
+                    'ls.learner_status as parent_status', 'ls.tutor_status as tutor_status', 'ls.id as lesson_subject_id',
+                    
                 )->get();
 
 
@@ -257,6 +290,7 @@ class Lesson extends Helpers{
         $learners = Lesson::core($my_learners, false, 1, false);
         return $learners;
     }
+
 
     public static function lessons($parent_id, $lesson_subject_id){
     

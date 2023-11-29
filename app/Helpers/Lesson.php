@@ -29,7 +29,7 @@ class Lesson extends Helpers{
                         $join->on('parent.id', '=', 'ls.parent_id');
                     })
                     ->leftJoin('tutors As tutor', function($join){
-                        $join->on('tutor.id', '=', 'ls.tutor_id');
+                        $join->on('tutor.id', '=', 'subject.tutor_id');
                     })
                     ->leftJoin('users As uu', function($join){
                         $join->on('uu.id', '=', 'tutor.user_id');

@@ -164,7 +164,7 @@ class TutorController extends Controller
             ]
         ], Response::HTTP_OK);
     }
-    
+
 
     public function lesson(Request $request){
 
@@ -292,6 +292,40 @@ class TutorController extends Controller
                             'learner_gender' => $learner_gender,
                             'lesson_completed' => $status,
                         );
+
+
+                        $padded['lesson_period'] = []; 
+
+                        $query5 = DB::table('lesson_subjects_timetable')
+                        ->where(
+                            [
+                                ['lesson_subject_id', '=', $request->lesson_subject_id],
+                            ]
+                        )
+                        ->get();
+                        if($query5){
+                            foreach($query5 as $timetable){
+                                $lesson_day_id = $timetable->lesson_day_id;
+                                $lesson_day_hours = $timetable->lesson_day_hours;
+                                $lesson_day_start_time = $timetable->lesson_day_start_time;
+                                $lesson_timetable_day_id = $timetable->id;
+
+
+                                $query6 = DB::table('lesson_day')
+                                ->where(
+                                    [
+                                        ['id', '=', $lesson_day_id],
+                                    ]
+                                )
+                                ->first();
+                                if($query6){
+                                    $day_name = $query6->day_name;
+                                    $data_time = array( "day" => $day_name, "starts_by" => $lesson_day_start_time, "duration" => $lesson_day_hours, "timetable_id" => $lesson_timetable_day_id);
+                                    array_push($padded['lesson_period'], $data_time);
+                                }
+                            }
+
+                        }
                     }
 
                     $feedback = DB::table('lesson_feedback as lf')

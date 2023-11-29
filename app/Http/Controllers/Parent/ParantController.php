@@ -15,8 +15,10 @@ use Illuminate\Support\Facades\DB;
 use App\Models\LessonFeedbackReply;
 use App\Http\Controllers\Controller;
 use App\Models\LessonSubjectTimetable;
+use App\Models\Tutor;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class ParantController extends Controller
 {
@@ -63,6 +65,56 @@ class ParantController extends Controller
         }
 
         $learners = Lesson::dashboard($parent->id);
+
+        $tutor_parent_data = [];
+        $parents_tutor = [];
+
+        foreach($learners as $learners_value){
+            $tutor_user_id = $learners_value['lessons']->lesson_subject_id;
+            if(array_search($tutor_user_id, $tutor_user_id) === false){
+                array_push($parents_tutor, $tutor_user_id);
+            }
+        }
+
+        foreach($parents_tutor as $tutors_parent_value){
+
+            $query0 = DB::table('lesson_subjects')
+            ->where(
+                [
+                    ['id', '=', $tutors_parent_value]
+                ]
+            )
+            ->select('subject_id', 'tutor_status', 'learner_status', 'id', 'tutor_id', 'lesson_learner_id')
+            ->first();
+            if($query0){
+                $subject_id = $query0->subject_id;
+                $tutor_status = $query0->tutor_status;
+                $learner_status = $query0->learner_status;
+                $tutor_id = $query0->tutor_id;
+
+                $query1 = User::where('id', $tutors_parent_value)->first();
+                $query2 = Tutor::where('user_id', $tutors_parent_value)->first();
+
+                $query3 = DB::table('subjects')
+                ->where(
+                    [
+                        ['id', '=', $subject_id],
+                    ]
+                )
+                ->first();
+                if($query3){
+                    $status = 'pending';
+                    if($tutor_status == 'completed' && $learner_status == 'completed' ){
+                        $status = 'completed';
+                    }
+
+                    $padded = [$query2->email, $query2->name, $status, $tutors_parent_value];
+                    array_push($tutor_parent_data, $padded);
+
+                }
+            }
+
+        }
         
 
         return response()->json([
@@ -71,7 +123,7 @@ class ParantController extends Controller
             'message' => 'Parent Dashboard',
             'data' => [
                 'parent' => $user_parent,
-                'learners' => $learners
+                'lessons' => $tutor_parent_data
             ]
         ], Response::HTTP_OK);
     }

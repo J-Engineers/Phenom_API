@@ -13,15 +13,17 @@ class ApiKey
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $irequest, Closure $next): Response
     {
-        if(!$request->api_key OR !$request->api_key === env('API_KEY')){
+        $api_key = $irequest->api_key;
+
+        if(!$api_key OR !$api_key == env('API_KEY')){
             return response()->json([
                 'status_code' => Response::HTTP_NOT_FOUND,
                 'status' => 'error',
                 'message' => 'Bad Request'
             ], Response::HTTP_NOT_FOUND);
         }
-        return $next($request);
+        return $next($irequest);   
     }
 }

@@ -94,6 +94,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // Admin - Lesson Routes
 
+    Route::get('/v1/admin/lessons', [LessonController::class, 'lessons'])->name('admin.learners.lessons')->middleware(ActiveUser::class);
     Route::get('/v1/admin/lesson', [LessonController::class, 'lesson'])->name('admin.learners.lesson')->middleware(ActiveUser::class);
     Route::post('/v1/admin/lesson/feedback', [LessonController::class, 'feedback'])->name('admin.lesson.feedback')->middleware(ActiveUser::class);
     Route::post('/v1/admin/lesson/feedback/reply', [LessonController::class, 'feedback_reply'])->name('admin.lesson.feedback.reply')->middleware(ActiveUser::class);
@@ -138,5 +139,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/v1/parent/learner', [ParantController::class, 'learner'])->name('parent.learner')->middleware(ActiveUser::class);
     Route::post('/v1/parent/lesson/learner/create', [ParantController::class, 'add_learner_to_lesson'])->name('parent.lesson.learner.add')->middleware(ActiveUser::class);
     Route::delete('/v1/parent/lesson/learner/remove', [ParantController::class, 'remove_learner_from_lesson'])->name('parent.lesson.learner.remove')->middleware(ActiveUser::class);
-
+    Route::post('/v1/parent/lesson/learner/subject/add', [ParantController::class, 'add_lesson_subject'])->name('parent.lesson.learner.subject.add')->middleware(ActiveUser::class);
+    
 });

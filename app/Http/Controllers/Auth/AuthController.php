@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Carbon\Carbon;
 use App\Models\User;
+use App\Models\AccessToken;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\PasswordResetToken;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\AccessToken;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\AuthController\ForgotPassword;
+use App\Http\Requests\AuthController\Login;
+use App\Http\Requests\AuthController\Register;
+use App\Http\Requests\AuthController\ResetPassword;
+use App\Http\Requests\AuthController\VerifyEmail;
 
 class AuthController extends Controller
 {
@@ -25,23 +31,9 @@ class AuthController extends Controller
      * @return JsonResponse
     */
 
-    public function login(Request $request){
+    public function login(Login $request){
 
-        $fields = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'api_key' => 'required|string'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-
-
+        $request->validated();
         // Attempt to find the user by email
         $user = User::where('email', $request->email)->first();
 
@@ -116,25 +108,11 @@ class AuthController extends Controller
      * @return JsonResponse
     */
 
-    public function register(Request $request)
+    public function register(Register $request)
     {
 
-        $fields = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'user_name' => 'required|string',
-            'phone' => 'required|string',
-            'api_key' => 'required|string',
-            'org_id' => 'required|string',
-        ]); // request body validation rules
+        $request->validated();
 
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
 
         if($request->org_id !== env('ORG_ID', "swatCat5MikrotikZssHr5Sha255")){
             return response()->json([
@@ -229,24 +207,12 @@ class AuthController extends Controller
      * @return JsonResponse
     */
 
-    public function send_registration_verification_email(Request $request)
+    public function send_registration_verification_email(VerifyEmail $request)
     {
+        $request->validated();
+
         if(auth()->user()){
             auth()->user()->tokens()->delete();
-        }
-
-        $fields = Validator::make($request->all(), [
-           'email' => 'required|string|email',
-           'verify_token' => 'required|integer',
-           'api_key' => 'required|string'
-        ]);
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY, // 422,
-                'status' => 'error',
-               'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Attempt to find the user by email
@@ -351,24 +317,15 @@ class AuthController extends Controller
     */
 
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(ForgotPassword $request)
     {
+
+        $request->validated();
+
         if(auth()->user()){
             auth()->user()->tokens()->delete();
         }
-        
-        $fields = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'api_key' => 'required|string'
-        ]);
- 
-        if($fields->fails()){
-             return response()->json([
-                 'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY, // 422,
-                 'status' => 'error',
-                'message' => $fields->messages(),
-             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
+
 
         $user = User::where('email', $request->email)->first();
 
@@ -407,7 +364,7 @@ class AuthController extends Controller
 
         $user_passward = PasswordResetToken::where('email', $request->email)->first();
         if($user_passward){
-            $user_passward->delete();
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
         }
 
 
@@ -434,27 +391,15 @@ class AuthController extends Controller
      * @return JsonResponse
     */
 
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPassword $request)
     {
+
+        $request->validated();
 
         if(auth()->user()){
             auth()->user()->tokens()->delete();
         }
-        
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'otp_token' => 'required|int',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
- 
-        if($fields->fails()){
-             return response()->json([
-                 'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY, // 422,
-                 'status' => 'error',
-                'message' => $fields->messages(),
-             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
+    
         $user_password = PasswordResetToken::where('token', $request->otp_token)->first();
         if(!$user_password OR !User::where('email', $user_password->email)->first()){
             return response()->json([
@@ -503,5 +448,4 @@ class AuthController extends Controller
             'message' => 'Password Reset Successful'
         ], Response::HTTP_OK);
     }
-    
 }

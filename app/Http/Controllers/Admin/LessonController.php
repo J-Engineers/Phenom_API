@@ -24,13 +24,11 @@ class LessonController extends Controller
 {
     
 
-    public function lesson(Request $request){
+    public function lessons(Request $request){
 
 
         $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'user_id' => 'required|string|exists:users,id'
+            'api_key' => 'required|string'
         ]); // request body validation rules
 
         if($fields->fails()){
@@ -50,31 +48,449 @@ class LessonController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
         
-        $request_user = User::where('id', '=', $request->user_id)->first();
-        if(!($request_user->user_type == 'parent')){
+        
+        // $learners = Lesson::lesson($parent->id, $request->lesson_subject_timetable_id);
+        $padded = [];
+        $tutor_parent_data = [];
+        $query = DB::table('lesson_subjects')
+        ->select('subject_id', 'tutor_status', 'learner_status', 'lesson_learner_id', 'id', 'tutor_id')
+        ->get();
+        if($query){
+            foreach($query as $subject){
+                $subject_id = $subject->subject_id;
+                $tutor_status = $subject->tutor_status;
+                $learner_status = $subject->learner_status;
+                $lesson_learner_id = $subject->lesson_learner_id;
+                $lesson_subject_id = $subject->id;
+                $lesson_tutor_id = $subject->tutor_id;
+                $lesson_tutor_name =  "";
+                $lesson_tutor_email =  "";
+                $tutor_user_id = '';
+
+                $query7 = Tutor::where('id', $lesson_tutor_id)->first();
+                if($query7){
+                    $query8 = User::where('id', $query7->user_id)->first();
+                    if($query8){
+                        $lesson_tutor_email = $query8->email;
+                        $lesson_tutor_name = $query8->first_name. " ".$query8->last_name;
+                        $tutor_user_id = $query7->user_id;
+
+                    }
+                }
+
+                $query1 = DB::table('subjects')
+                ->where(
+                    [
+                        ['id', '=', $subject_id],
+                    ]
+                )
+                ->first();
+                if($query1){
+                    $status = 'pending';
+                    if($tutor_status == 'completed' && $learner_status == 'completed' ){
+                        $status = 'completed';
+                    }
+                    $query2 = DB::table('lesson_learner')
+                    ->where(
+                        [
+                            ['id', '=', $lesson_learner_id],
+                        ]
+                    )
+                    ->select('lesson_id as lesson_id', 'learner_id as learner_id')
+                    ->get();
+                    if($query2){
+                        foreach($query2 as $learner){
+                            $learner_id = $learner->learner_id;
+                            $lesson_id = $learner->lesson_id;
+
+
+                            $query3 = DB::table('learners')
+                            ->where(
+                                [
+                                    ['id', '=', $learner_id]
+                                ]
+                            )
+                            ->first();
+                            if($query3){
+                                $learner_id = $query3->id;
+                                $learner_name = $query3->learners_name;
+                                $learner_dob = $query3->learners_dob;
+                                $learner_gender = $query3->learners_gender;
+                            }
+
+                            $query4 = DB::table('lessons')
+                            ->where(
+                                [
+                                    ['id', '=', $lesson_id],
+                                ]
+                            )
+                            ->first();
+                            if($query4){
+                                $lesson_address = $query4->lesson_address;
+                                $lesson_goal = $query4->lesson_goals;
+                                $lesson_mode = $query4->lesson_mode;
+                                $lesson_period = $query4->lesson_period;
+                                $lesson_perent_id = $query4->parent_id;
+
+                                $query5 = ParentUser::where('id', $lesson_perent_id)->first();
+                                $query6 = User::where('id', $query5->user_id)->first();
+                                $parent_email = $query6->email;
+                                $parent_user_id = $query6->id;
+
+                                $padded['lesson_details'] = array(
+                                    'parent_email' => $parent_email,
+                                    'parent_user_id' => $parent_user_id,
+                                    'lesson_address' => $lesson_address,
+                                    'lesson_goal' => $lesson_goal,
+                                    'lesson_mode' => $lesson_mode,
+                                    'lesson_period' => $lesson_period,
+                                    'lesson_subject' => $query1->name,
+                                    'lesson_subject_id' => $lesson_subject_id,
+                                    
+                                );
+
+                                $padded['learner_details'] = array(
+                                    'learner_id' => $learner_id,
+                                    'learner_name' => $learner_name,
+                                    'learner_dob' => $learner_dob,
+                                    'learner_gender' => $learner_gender,
+                                    'lesson_completed' => $status,
+                                );
+
+                                $padded['tutor_details'] = array(
+                                    'lesson_tutor_email' => $lesson_tutor_email,
+                                    'lesson_tutor_name' => $lesson_tutor_name,
+                                    'tutor_user_id' => $tutor_user_id
+                                );
+
+                                $padded['lesson_period'] = []; 
+
+                                $query5 = DB::table('lesson_subjects_timetable')
+                                ->where(
+                                    [
+                                        ['lesson_subject_id', '=', $lesson_subject_id],
+                                    ]
+                                )
+                                ->get();
+                                if($query5){
+                                    foreach($query5 as $timetable){
+                                        $lesson_day_id = $timetable->lesson_day_id;
+                                        $lesson_day_hours = $timetable->lesson_day_hours;
+                                        $lesson_day_start_time = $timetable->lesson_day_start_time;
+                                        $lesson_timetable_day_id = $timetable->id;
+
+
+                                        $query6 = DB::table('lesson_day')
+                                        ->where(
+                                            [
+                                                ['id', '=', $lesson_day_id],
+                                            ]
+                                        )
+                                        ->first();
+                                        if($query6){
+                                            $day_name = $query6->day_name;
+                                            $data_time = array( "day" => $day_name, "starts_by" => $lesson_day_start_time, "duration" => $lesson_day_hours, "timetable_id" => $lesson_timetable_day_id);
+                                            array_push($padded['lesson_period'], $data_time);
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            $feedback = DB::table('lesson_feedback as lf')
+                            ->leftJoin('users As u', function($join){
+                                $join->on('u.id', '=', 'lf.user_id');
+                            })
+                        
+                            ->where(
+                                [
+                                    ['lf.lesson_subject_id', '=', $lesson_subject_id],
+                                ]
+                            )->select(
+                                'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
+                                'lf.feedback', 'lf.id as feedback_id',
+                            )->get();
+
+                            $feedbacks = [];
+            
+                            foreach($feedback as $feedback_value){
+                                $packey = [];
+                                $packey['feedback'] = $feedback_value;
+                                $feedbacks_reply = DB::table('lesson_feedback_reply as lfr')
+                                ->leftJoin('users As u', function($join){
+                                    $join->on('u.id', '=', 'lfr.user_id');
+                                })
+                                ->where(
+                                    [
+                                        ['lfr.feedback_id', '=',  $feedback_value->feedback_id],
+                                    ]
+                                )
+                                ->orWhere(
+                                    [
+                                        ['lfr.feedback_id', '=',  $feedback_value->feedback_id],
+                                    ]
+                                )
+                                ->select(
+                                    'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
+                                    'lfr.response_reply', 'lfr.id as feedback_reply_id',
+                                )->get();
+                
+                                $packey['reply'] = $feedbacks_reply;
+                                array_push($feedbacks, $packey);
+                            }
+                            $padded['learner_feedbacks'] = $feedbacks;
+                            array_push($tutor_parent_data, $padded);
+                        }
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Lessons',
+            'data' => [
+                'lesson' => $tutor_parent_data
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function lesson(Request $request){
+
+
+        $fields = Validator::make($request->all(), [
+            'api_key' => 'required|string',
+            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id'
+        ]); // request body validation rules
+
+        if($fields->fails()){
             return response()->json([
                 'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
                 "status" => "error",
-                'message' => 'This is not a parent',
+                'message' => $fields->messages(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
+        } // request body validation failed, so lets return
+        
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorizeds'
+            ], Response::HTTP_NOT_FOUND);
         }
+        
 
-        $user_parent = DB::table('users as u')
-        ->leftJoin('parent_user as p', function ($join){
-            $join->on('u.id', '=', 'p.user_id');
-        })
-        ->where('u.id', $request->user_id)->get();
+        
+        // $learners = Lesson::lesson($parent->id, $request->lesson_subject_timetable_id);
+        $padded = [];
+        $tutor_parent_data = [];
+        $query = DB::table('lesson_subjects')
+        ->select('subject_id', 'tutor_status', 'learner_status', 'lesson_learner_id', 'id', 'tutor_id')
+        ->where(
+            [
+                ['id', '=', $request->lesson_subject_id]
+            ]
+        )
+        ->get();
+        if($query){
+            foreach($query as $subject){
+                $subject_id = $subject->subject_id;
+                $tutor_status = $subject->tutor_status;
+                $learner_status = $subject->learner_status;
+                $lesson_learner_id = $subject->lesson_learner_id;
+                $lesson_subject_id = $subject->id;
+                $lesson_tutor_id = $subject->tutor_id;
+                $lesson_tutor_name =  "";
+                $lesson_tutor_email =  "";
+                $tutor_user_id = '';
 
-        $parent = ParentUser::where('user_id', '=', $request->user_id)->first();
-        $lessons = Lesson::lessons($parent->id, $request->lesson_subject_id);
+                $query7 = Tutor::where('id', $lesson_tutor_id)->first();
+                if($query7){
+                    $query8 = User::where('id', $query7->user_id)->first();
+                    if($query8){
+                        $lesson_tutor_email = $query8->email;
+                        $lesson_tutor_name = $query8->first_name. " ".$query8->last_name;
+                        $tutor_user_id = $query7->user_id;
+
+                    }
+                }
+
+                $query1 = DB::table('subjects')
+                ->where(
+                    [
+                        ['id', '=', $subject_id],
+                    ]
+                )
+                ->first();
+                if($query1){
+                    $status = 'pending';
+                    if($tutor_status == 'completed' && $learner_status == 'completed' ){
+                        $status = 'completed';
+                    }
+                    $query2 = DB::table('lesson_learner')
+                    ->where(
+                        [
+                            ['id', '=', $lesson_learner_id],
+                        ]
+                    )
+                    ->select('lesson_id as lesson_id', 'learner_id as learner_id')
+                    ->get();
+                    if($query2){
+                        foreach($query2 as $learner){
+                            $learner_id = $learner->learner_id;
+                            $lesson_id = $learner->lesson_id;
+
+
+                            $query3 = DB::table('learners')
+                            ->where(
+                                [
+                                    ['id', '=', $learner_id]
+                                ]
+                            )
+                            ->first();
+                            if($query3){
+                                $learner_id = $query3->id;
+                                $learner_name = $query3->learners_name;
+                                $learner_dob = $query3->learners_dob;
+                                $learner_gender = $query3->learners_gender;
+                            }
+
+                            $query4 = DB::table('lessons')
+                            ->where(
+                                [
+                                    ['id', '=', $lesson_id],
+                                ]
+                            )
+                            ->first();
+                            if($query4){
+                                $lesson_address = $query4->lesson_address;
+                                $lesson_goal = $query4->lesson_goals;
+                                $lesson_mode = $query4->lesson_mode;
+                                $lesson_period = $query4->lesson_period;
+                                $lesson_perent_id = $query4->parent_id;
+
+                                $query5 = ParentUser::where('id', $lesson_perent_id)->first();
+                                $query6 = User::where('id', $query5->user_id)->first();
+                                $parent_email = $query6->email;
+                                $parent_user_id = $query6->id;
+
+                                $padded['lesson_details'] = array(
+                                    'parent_email' => $parent_email,
+                                    'parent_user_id' => $parent_user_id,
+                                    'lesson_address' => $lesson_address,
+                                    'lesson_goal' => $lesson_goal,
+                                    'lesson_mode' => $lesson_mode,
+                                    'lesson_period' => $lesson_period,
+                                    'lesson_subject' => $query1->name,
+                                    'lesson_subject_id' => $lesson_subject_id,
+                                    
+                                );
+
+                                $padded['learner_details'] = array(
+                                    'learner_id' => $learner_id,
+                                    'learner_name' => $learner_name,
+                                    'learner_dob' => $learner_dob,
+                                    'learner_gender' => $learner_gender,
+                                    'lesson_completed' => $status,
+                                );
+
+                                $padded['tutor_details'] = array(
+                                    'lesson_tutor_email' => $lesson_tutor_email,
+                                    'lesson_tutor_name' => $lesson_tutor_name,
+                                    'tutor_user_id' => $tutor_user_id
+                                );
+
+                                $padded['lesson_period'] = []; 
+
+                                $query5 = DB::table('lesson_subjects_timetable')
+                                ->where(
+                                    [
+                                        ['lesson_subject_id', '=', $lesson_subject_id],
+                                    ]
+                                )
+                                ->get();
+                                if($query5){
+                                    foreach($query5 as $timetable){
+                                        $lesson_day_id = $timetable->lesson_day_id;
+                                        $lesson_day_hours = $timetable->lesson_day_hours;
+                                        $lesson_day_start_time = $timetable->lesson_day_start_time;
+                                        $lesson_timetable_day_id = $timetable->id;
+
+
+                                        $query6 = DB::table('lesson_day')
+                                        ->where(
+                                            [
+                                                ['id', '=', $lesson_day_id],
+                                            ]
+                                        )
+                                        ->first();
+                                        if($query6){
+                                            $day_name = $query6->day_name;
+                                            $data_time = array( "day" => $day_name, "starts_by" => $lesson_day_start_time, "duration" => $lesson_day_hours, "timetable_id" => $lesson_timetable_day_id);
+                                            array_push($padded['lesson_period'], $data_time);
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            $feedback = DB::table('lesson_feedback as lf')
+                            ->leftJoin('users As u', function($join){
+                                $join->on('u.id', '=', 'lf.user_id');
+                            })
+                        
+                            ->where(
+                                [
+                                    ['lf.lesson_subject_id', '=', $lesson_subject_id],
+                                ]
+                            )->select(
+                                'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
+                                'lf.feedback', 'lf.id as feedback_id',
+                            )->get();
+
+                            $feedbacks = [];
+            
+                            foreach($feedback as $feedback_value){
+                                $packey = [];
+                                $packey['feedback'] = $feedback_value;
+                                $feedbacks_reply = DB::table('lesson_feedback_reply as lfr')
+                                ->leftJoin('users As u', function($join){
+                                    $join->on('u.id', '=', 'lfr.user_id');
+                                })
+                                ->where(
+                                    [
+                                        ['lfr.feedback_id', '=',  $feedback_value->feedback_id],
+                                    ]
+                                )
+                                ->orWhere(
+                                    [
+                                        ['lfr.feedback_id', '=',  $feedback_value->feedback_id],
+                                    ]
+                                )
+                                ->select(
+                                    'u.first_name as user_firstname', 'u.last_name as user_lastname', 'u.user_type', 'u.id as user_id',
+                                    'lfr.response_reply', 'lfr.id as feedback_reply_id',
+                                )->get();
+                
+                                $packey['reply'] = $feedbacks_reply;
+                                array_push($feedbacks, $packey);
+                            }
+                            $padded['learner_feedbacks'] = $feedbacks;
+                            array_push($tutor_parent_data, $padded);
+                        }
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'status_code' => Response::HTTP_OK,
             'status' => 'success',
             'message' => 'Parent Learner Lesson',
             'data' => [
-                'parent' => $user_parent,
-                'lessons' => $lessons,
+                'lesson' => $tutor_parent_data,
             ]
         ], Response::HTTP_OK);
     }

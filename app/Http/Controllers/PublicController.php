@@ -3,29 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\EducationLevels;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\PublicController\ViewDaysRequest;
+use App\Http\Requests\PublicController\ViewLevelRequest;
+use App\Http\Requests\PublicController\ViewLevelsRequest;
+use App\Http\Requests\PublicController\ViewSubjectRequest;
+use App\Http\Requests\PublicController\ViewSubjectsRequest;
+use App\Http\Requests\PublicController\ViewLevelSubjectRequest;
 
 class PublicController extends Controller
 {
     //
-    public function viewLevels(Request $request){
-
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+    public function viewLevels(ViewLevelsRequest $request){
+        $request->validated();
 
 
         $search_education = EducationLevels::all();
@@ -39,22 +31,10 @@ class PublicController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function viewLevel(Request $request){
+    public function viewLevel(ViewLevelRequest $request){
+        $request->validated();
 
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'level_id' => 'required|string|exists:education_levels,id'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-
+       
        
         $search_education = EducationLevels::where([
             'id' => $request->level_id
@@ -69,20 +49,9 @@ class PublicController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function viewSubjects(Request $request){
+    public function viewSubjects(ViewSubjectsRequest $request){
+        $request->validated();
 
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
 
 
         $search_education = DB::table('subjects as s')
@@ -104,23 +73,10 @@ class PublicController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function viewSubject(Request $request){
+    public function viewSubject(ViewSubjectRequest $request){
+        $request->validated();
 
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'subject_id' => 'required|string|exists:subjects,id'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-
-        
+       
         
 
         $search_education = DB::table('subjects as s')
@@ -145,25 +101,11 @@ class PublicController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function viewLevelSubject(Request $request){
+    public function viewLevelSubject(ViewLevelSubjectRequest $request){
+        $request->validated();
 
 
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'level_id' => 'required|string|exists:education_levels,id',
-            'subject_id' => 'required|string|exists:subjects,id'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-
-
+       
         $search_education = DB::table('subjects as s')
         ->leftJoin('education_levels as el', function ($join) {
             $join->on('s.education_levels_id', '=', 'el.id');
@@ -187,20 +129,9 @@ class PublicController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function viewLessonDays(Request $request){
+    public function viewLessonDays(ViewDaysRequest $request){
+        $request->validated();
 
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
 
         $search_education = DB::table('lesson_day')->select('day_name', 'id')->get();
        

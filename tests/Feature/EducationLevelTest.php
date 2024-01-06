@@ -16,7 +16,7 @@ class EducationLevelTest extends TestCase
     public function test_education_levels_exist_in_database(): void
     {
 
-        EducationLevels::create([
+        $level = EducationLevels::create([
             'name' => 'Crenche'
         ]);
 
@@ -29,7 +29,21 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    '*' => [
+                        "id",
+                        "name",
+                        "created_at",
+                        "updated_at",
+                    ],
+                ],
+            ]
+        );
     }
 
     public function test_education_level_exist_in_database(): void
@@ -49,7 +63,19 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    "id",
+                    "name",
+                    "created_at",
+                    "updated_at",
+                ],
+            ]
+        );
     }
 
     public function test_education_subjects_exist_in_database(): void
@@ -73,7 +99,21 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    '*' => [
+                        "education_level_name",
+                        "education_level_id",
+                        "subject_name",
+                        "subject_id",
+                    ],
+                ],
+            ]
+        );
     }
 
     public function test_education_subject_exist_in_database(): void
@@ -90,7 +130,7 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/subjects',
+            'http://localhost:8000/api/v1/public/subject',
             [
                 'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=',
                 'subject_id' => $subject->id
@@ -98,7 +138,19 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    "education_level_name",
+                    "education_level_id",
+                    "subject_name",
+                    "subject_id",
+                ],
+            ]
+        );
     }
 
     public function test_education_subject_level_exist_in_database(): void
@@ -124,7 +176,21 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    '*' => [
+                        "education_level_name",
+                        "education_level_id",
+                        "subject_name",
+                        "subject_id",
+                    ],
+                ],
+            ]
+        );
     }
 
     public function test_education_day_exist_in_database(): void
@@ -143,6 +209,18 @@ class EducationLevelTest extends TestCase
         );
     
         $response->assertStatus(201);
-        $response->assertSee('success');
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' =>  [
+                    '*' => [
+                        "id",
+                        "day_name",
+                    ],
+                ],
+            ]
+        );
     }
 }

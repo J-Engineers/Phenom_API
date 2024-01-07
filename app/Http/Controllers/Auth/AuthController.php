@@ -181,7 +181,15 @@ class AuthController extends Controller
                 'status_code' => Response::HTTP_CREATED,
                 'status' => 'success',
                 'message' => 'User signed up successfully',
-                'data'=> $user
+                'data'=> [
+                    "email" => $user->email,
+                    "user_name" => $user->user_name,
+                    "verify_token" => $user->verify_token,
+                    "id" => $user->id,
+                    "is_admin" => $user->is_admin ? true : false,
+                    "verification" => $user->verify_email ? true : false,
+                    "user_type" => $user->user_type,
+                ]
             ], Response::HTTP_CREATED
         );
     }
@@ -232,7 +240,7 @@ class AuthController extends Controller
             return response()->json([
                 'status_code' => Response::HTTP_UNAUTHORIZED,
                 'status' => 'success',
-                'message' => 'Verification Successful done already, login',
+                'message' => 'Verification Successful done already. Kindly login',
             ], Response::HTTP_UNAUTHORIZED);
         }
          
@@ -378,7 +386,10 @@ class AuthController extends Controller
             'status_code' => Response::HTTP_OK,
             'status' => 'success',
             'message' => 'Token Sent to users Email',
-            'token' => $otp
+            'data' => [
+                'token' => $otp,
+                'email' => $request->email,
+            ]
         ], Response::HTTP_OK);
     }
 

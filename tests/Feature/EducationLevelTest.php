@@ -13,7 +13,7 @@ class EducationLevelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_education_levels_exist_in_database(): void
+    public function test_education_levels_exist_in_database_successful(): void
     {
 
         $level = EducationLevels::create([
@@ -22,9 +22,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/levels',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/levels',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc='
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=")
             ]
         );
     
@@ -46,7 +46,7 @@ class EducationLevelTest extends TestCase
         );
     }
 
-    public function test_education_level_exist_in_database(): void
+    public function test_education_level_exist_in_database_successful(): void
     {
 
         $level = EducationLevels::create([
@@ -55,9 +55,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/level',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/level',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=',
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
                 'level_id' => $level->id,
             ]
         );
@@ -78,7 +78,7 @@ class EducationLevelTest extends TestCase
         );
     }
 
-    public function test_education_subjects_exist_in_database(): void
+    public function test_education_subjects_exist_in_database_successful(): void
     {
 
         $level = EducationLevels::create([
@@ -92,9 +92,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/subjects',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/subjects',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc='
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=")
             ]
         );
     
@@ -116,7 +116,7 @@ class EducationLevelTest extends TestCase
         );
     }
 
-    public function test_education_subject_exist_in_database(): void
+    public function test_education_subject_exist_in_database_successful(): void
     {
 
         $level = EducationLevels::create([
@@ -130,9 +130,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/subject',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/subject',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=',
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
                 'subject_id' => $subject->id
             ]
         );
@@ -153,7 +153,7 @@ class EducationLevelTest extends TestCase
         );
     }
 
-    public function test_education_subject_level_exist_in_database(): void
+    public function test_education_subject_level_exist_in_database_successful(): void
     {
 
         $level = EducationLevels::create([
@@ -167,9 +167,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/level/subject',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/level/subject',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=',
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
                 'subject_id' => $subject->id,
                 'level_id' => $level->id,
             ]
@@ -193,7 +193,7 @@ class EducationLevelTest extends TestCase
         );
     }
 
-    public function test_education_day_exist_in_database(): void
+    public function test_education_day_exist_in_database_successful(): void
     {
 
         LessonDay::create([
@@ -202,9 +202,9 @@ class EducationLevelTest extends TestCase
 
         $response = $this->json(
             'GET', 
-            'http://localhost:8000/api/v1/public/lesson/days',
+            env("APP_URL", "http://localhost:8000/api/v1/").'public/lesson/days',
             [
-                'api_key' => 'base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc='
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=")
             ]
         );
     

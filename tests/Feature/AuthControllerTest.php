@@ -5,9 +5,13 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
 
 class AuthControllerTest extends TestCase
 {
@@ -184,6 +188,189 @@ class AuthControllerTest extends TestCase
                 'status_code',
                 'status',
                 'message',
+            ]
+        );
+    }
+
+    public function test_user_get_details_successful(): void
+    {
+
+        $token = Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->json(
+            'GET', 
+            env("APP_URL", "http://localhost:8000/api/v1/").'user',
+            [
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc=")
+            ],
+            [
+                'Authorization' => "Bearer $token",
+            ]
+        );
+    
+        $response->assertStatus(200);
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' => [
+                    "id",
+                    "user_name",
+                    "email",
+                    "email_verified_at",
+                    "phone",
+                    "activate",
+                    "is_admin",
+                    "verify_token",
+                    "verify_email",
+                    "user_type",
+                    "title",
+                    "first_name",
+                    "last_name",
+                    "address",
+                    "gender",
+                    "photo",
+                    "created_at",
+                    "updated_at"
+                ]
+            ]
+        );
+    }
+
+    public function test_user_change_password_successful(): void
+    {
+        $user = User::factory()->create();
+        $token = Sanctum::actingAs($user);
+
+        $response = $this->json(
+            'PUT', 
+            env("APP_URL", "http://localhost:8000/api/v1/").'user/password',
+            [
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
+                'password' => "123456",
+                'password_confirmation' => "123456",
+            ],
+            [
+                'Authorization' => "Bearer $token",
+            ]
+        );
+    
+        $response->assertStatus(200);
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' => [
+                    "id",
+                    "user_name",
+                    "email",
+                    "email_verified_at",
+                    "phone",
+                    "activate",
+                    "is_admin",
+                    "verify_token",
+                    "verify_email",
+                    "user_type",
+                    "created_at",
+                    "updated_at"
+                ]
+            ]
+        );
+    }
+
+    public function test_user_update_details_successful(): void
+    {
+
+        $token = Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->json(
+            'PUT', 
+            env("APP_URL", "http://localhost:8000/api/v1/").'user/update',
+            [
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
+                "title" => "Mr",
+                "first_name" => "Justice",
+                "last_name" => "George",
+                "gender" => "Female",
+                "address" => "Uyo Nigeria"
+            ],
+            [
+                'Authorization' => "Bearer $token",
+            ]
+        );
+    
+        $response->assertStatus(200);
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' => [
+                    "id",
+                    "user_name",
+                    "email",
+                    "email_verified_at",
+                    "phone",
+                    "activate",
+                    "is_admin",
+                    "verify_token",
+                    "verify_email",
+                    "user_type",
+                    "title",
+                    "first_name",
+                    "last_name",
+                    "address",
+                    "gender",
+                    "created_at",
+                    "updated_at"
+                ]
+            ]
+        );
+    }
+
+    public function test_user_update_photo_successful(): void
+    {
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->create('file.jpg');
+
+        $token = Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->json(
+            'POST', 
+            env("APP_URL", "http://localhost:8000/api/v1/").'user/photo',
+            [
+                'api_key' => env("API_KEY", "base64:mrbHT4tAp2pe2lMYJfliwIugvVZkO7RSH7ojdfGJ9oc="),
+                'image' => $file
+            ],
+            [
+                'Authorization' => "Bearer $token",
+            ]
+        );
+    
+        $response->assertStatus(200);
+        $response->assertJsonStructure(
+            [
+                'status_code',
+                'status',
+                'message',
+                'data' => [
+                    "id",
+                    "user_name",
+                    "email",
+                    "email_verified_at",
+                    "phone",
+                    "activate",
+                    "is_admin",
+                    "verify_token",
+                    "verify_email",
+                    "user_type",
+                    "photo",
+                    "created_at",
+                    "updated_at"
+                ]
             ]
         );
     }

@@ -2,32 +2,21 @@
 
 namespace App\Http\Controllers\User;
 
+use Storage;
 use App\Models\User;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Storage;
+use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\AuthController\DetailsRequest;
+use App\Http\Requests\AuthController\UpdatePhotoRequest;
+use App\Http\Requests\AuthController\UpdateDetailsRequest;
+use App\Http\Requests\AuthController\ChangePasswordRequest;
 
 class ProfileController extends Controller
 {
     //
-    public function details(Request $request){
-
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-        
+    public function details(DetailsRequest $request){
+        $request->validated();
         $auth = auth()->user()->id;
         
         $user = User::where('id', $auth)->first();
@@ -39,22 +28,9 @@ class ProfileController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function changePassword(Request $request){
-
+    public function changePassword(ChangePasswordRequest $request){
+        $request->validated();
         $user = auth()->user();
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
 
         $password = Hash::make($request->password);
         $user->update([
@@ -69,27 +45,9 @@ class ProfileController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function updateDetails(Request $request){
-
+    public function updateDetails(UpdateDetailsRequest $request){
+        $request->validated();
         $user = auth()->user();
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'title' => 'required|string',
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'gender' => 'required|string',
-            'address' => 'required|string',
-        ]);
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-
         $user->update([
             'title' => $request->title,
             'first_name' => $request->first_name,
@@ -106,22 +64,9 @@ class ProfileController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function updatePhoto(Request $request){
-
+    public function updatePhoto(UpdatePhotoRequest $request){
+        $request->validated();
         $user = auth()->user();
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'image' => 'required|image'
-        ]);
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
 
         if(!$request->hasfile('image'))
         {

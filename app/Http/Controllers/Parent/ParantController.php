@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Parent;
 
+use App\Models\User;
+use App\Models\Tutor;
 use App\Helpers\Lesson;
 use App\Models\Learner;
 use App\Models\Lessons;
@@ -15,31 +17,16 @@ use Illuminate\Support\Facades\DB;
 use App\Models\LessonFeedbackReply;
 use App\Http\Controllers\Controller;
 use App\Models\LessonSubjectTimetable;
-use App\Models\Tutor;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\User;
+use App\Http\Requests\ParentController\DashboardRequest;
 
 class ParantController extends Controller
 {
     //
-    public function details(Request $request){
-
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-        
+    public function details(DashboardRequest $request){
+        $request->validated();
         $auth = auth()->user();
-        
 
         if(!($auth->user_type == 'parent')){
             return response()->json([

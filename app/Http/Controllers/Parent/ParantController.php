@@ -9,7 +9,6 @@ use App\Models\Learner;
 use App\Models\Lessons;
 use App\Models\ParentUser;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Models\LessonLearner;
 use App\Models\LessonSubject;
 use App\Models\LessonFeedback;
@@ -19,7 +18,20 @@ use App\Http\Controllers\Controller;
 use App\Models\LessonSubjectTimetable;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\ParentController\LessonRequest;
+use App\Http\Requests\ParentController\LessonsRequest;
+use App\Http\Requests\ParentController\FeedbackRequest;
+use App\Http\Requests\ParentController\LearnersRequest;
+use App\Http\Requests\ParentController\AddLessonRequest;
 use App\Http\Requests\ParentController\DashboardRequest;
+use App\Http\Requests\ParentController\FeedbackReplyRequest;
+use App\Http\Requests\ParentController\CompleteLessonRequest;
+use App\Http\Requests\ParentController\AddLessonLearnerRequest;
+use App\Http\Requests\ParentController\AddLessonSubjectRequest;
+use App\Http\Requests\ParentController\AddLearnerToLessonRequest;
+use App\Http\Requests\ParentController\RemoveLessonLearnerRequest;
+use App\Http\Requests\ParentController\RemoveLessonSubjectRequest;
+use App\Http\Requests\ParentController\RemoveLearnerFromLessonRequest;
 
 class ParantController extends Controller
 {
@@ -28,13 +40,7 @@ class ParantController extends Controller
         $request->validated();
         $auth = auth()->user();
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+       
 
         $user_parent = DB::table('users as u')
         ->leftJoin('parent_user as p', function ($join){
@@ -125,31 +131,10 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function lessons(Request $request){
-
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+    public function lessons(LessonsRequest $request){
+        $request->validated();
         
         $auth = auth()->user();
-        
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
 
         $user_parent = DB::table('users as u')
         ->leftJoin('parent_user as p', function ($join){
@@ -378,32 +363,12 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function lesson(Request $request){
-
-
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id'
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
-        
+    public function lesson(LessonRequest $request){
+        $request->validated();
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+       
 
         $user_parent = DB::table('users as u')
         ->leftJoin('parent_user as p', function ($join){
@@ -608,33 +573,15 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function feedback(Request $request){
+    public function feedback(FeedbackRequest $request){
+        $request->validated();
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-            'feedback' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+       
         
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
+      
         $return = LessonFeedback::create(
             [
                 'lesson_subject_id' => $request->lesson_subject_id,
@@ -654,32 +601,12 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function feedback_reply(Request $request){
+    public function feedback_reply(FeedbackReplyRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'feedback_id' => 'required|string|exists:lesson_feedback,id',
-            'feedback_reply' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
-        
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+       
 
         $reply = LessonFeedbackReply::create(
             [
@@ -701,32 +628,14 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function complete_lesson(Request $request){
+    public function complete_lesson(CompleteLessonRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
+       
         $lesson = LessonSubject::where(
             [
                 ['id', '=', $request->lesson_subject_id],
@@ -754,46 +663,14 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function add_lesson(Request $request){
+    public function add_lesson(AddLessonRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'total_learners' => 'required|integer',
-
-            'lesson_address' => 'required|string',
-            'lesson_goals' => 'required|string',
-            'lesson_mode' => 'required|string',
-            'lesson_period' => 'required|string',
-           
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
 
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $auth->id)->first();
-        if(!$parent){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Your details as a parent was not recovered',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+        
 
         for ($i_learners=1; $i_learners <= $request->total_learners; $i_learners++) {
 
@@ -815,7 +692,7 @@ class ParantController extends Controller
 
         $lesson = Lessons::create([
             'id' => (string)Str::uuid(),
-            'parent_id' => $parent->id,
+            'parent_id' => $auth->id,
             'lesson_address' => $request->lesson_address,
             'lesson_goals' => $request->lesson_goals,
             'lesson_mode' => $request->lesson_mode,
@@ -859,42 +736,12 @@ class ParantController extends Controller
         );
     }
     
-    public function add_lesson_subject(Request $request){
+    public function add_lesson_subject(AddLessonSubjectRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'total_subjects' => 'required|integer',
-
-            'lesson_learner_id' => 'required|string|exists:lesson_learner,id',
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                'status' => 'error',
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+    $request->validated();
 
         $auth = auth()->user();
         
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $auth->id)->first();
-        if(!$parent){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Your details as a parent was not recovered',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
 
         for ($i_subjects=1; $i_subjects <= $request->total_subjects; $i_subjects++) {
 
@@ -982,31 +829,14 @@ class ParantController extends Controller
         );
     }
 
-    public function remove_lesson(Request $request){
+    public function remove_lesson(RemoveLessonSubjectRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_subject_id' => 'required|string|exists:lesson_subjects,id',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+       
 
         $lesson = LessonSubject::where(
             [
@@ -1041,47 +871,17 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function add_learner(Request $request){
+    public function add_learner(AddLessonLearnerRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'learner_name' => 'required|string',
-            'learner_dob' => 'required|string',
-            'learner_gender' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $auth->id)->first();
-        if(!$parent){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Not a parent',
-            ], Response::HTTP_NOT_FOUND); // 404
-        }
-
         $search_learner = Learner::where(
             [
                 ['learners_name', '=', $request->learner_name],
-                ['parent_id', '=', $parent->id],
+                ['parent_id', '=', $auth->id],
             ]
         )->first();
         if($search_learner){
@@ -1095,7 +895,7 @@ class ParantController extends Controller
 
         $learner = Learner::create([
             'id' => (string)Str::uuid(),
-            'parent_id' => $parent->id,
+            'parent_id' => $auth->id,
             'learners_name' => $request->learner_name,
             'learners_dob' => $request->learner_dob,
             'learners_gender' => $request->learner_gender,
@@ -1112,31 +912,12 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function remove_learner(Request $request){
+    public function remove_learner(RemoveLessonLearnerRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'learner_id' => 'required|string|exists:learners,id',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
-        
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
+       
 
         $learner = Learner::where(
             [
@@ -1163,43 +944,15 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function learners(Request $request){
+    public function learners(LearnersRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
-        
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $auth->id)->first();
-        if(!$parent){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Not a parent',
-            ], Response::HTTP_NOT_FOUND); // 404
-        }
 
         $search_learner = Learner::where(
             [
-                ['parent_id', '=', $parent->id],
+                ['parent_id', '=', $auth->id],
             ]
         )->get();
         if(!$search_learner){
@@ -1220,20 +973,9 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function learner(Request $request){
+    public function learner(LessonsRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'learner_id' => 'required|string|exists:learners,id',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
         
@@ -1279,47 +1021,18 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
     
-    public function add_learner_to_lesson(Request $request){
+    public function add_learner_to_lesson(AddLearnerToLessonRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'learner_id' => 'required|string|exists:learners,id',
-            'lesson_id' => 'required|string|exists:lessons,id',
-            'description_of_learner' => 'required|string',
-            'lesson_commence' => 'required|string',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
         
 
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
-
-        $parent = ParentUser::where('user_id', $auth->id)->first();
-        if(!$parent){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'Not a parent',
-            ], Response::HTTP_NOT_FOUND); // 404
-        }
+       
 
         $search_learner = Learner::where(
             [
-                ['parent_id', '=', $parent->id],
+                ['parent_id', '=', $auth->id],
                 ['id', '=', $request->learner_id],
             ]
         )->first();
@@ -1432,31 +1145,11 @@ class ParantController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function remove_learner_from_lesson(Request $request){
+    public function remove_learner_from_lesson(RemoveLearnerFromLessonRequest $request){
 
-        $fields = Validator::make($request->all(), [
-            'api_key' => 'required|string',
-            'lesson_learner_id' => 'required|string|exists:lesson_learner,id',
-        ]); // request body validation rules
-
-        if($fields->fails()){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => $fields->messages(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        } // request body validation failed, so lets return
+        $request->validated();
         
         $auth = auth()->user();
-        
-
-        if(!($auth->user_type == 'parent')){
-            return response()->json([
-                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
-                "status" => "error",
-                'message' => 'You are not permitted to view this resource',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY); // 422
-        }
 
         $search_lesson = LessonLearner::where(
             [

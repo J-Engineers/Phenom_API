@@ -1,17 +1,24 @@
 <?php
 
-namespace App\Http\Requests\ParentController;
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LessonsRequest extends FormRequest
+class BookStoreRequests extends FormRequest
 {
-    
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -22,15 +29,6 @@ class LessonsRequest extends FormRequest
                     }
                 }
             ]
-        ];
-    }
-
-    
-    public function messages()
-    {
-        return [
-            'api_key.required' => 'API Key is required!',
-            'api_key.string' => 'API Key must be a string',
         ];
     }
 }

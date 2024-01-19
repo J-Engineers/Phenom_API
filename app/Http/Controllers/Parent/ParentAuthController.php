@@ -199,6 +199,7 @@ class ParentAuthController extends Controller
                 'learner_tutor_gender' => $request->$tutor_gender,
                 'learner_tutor_type' => $request->$tutor_type,
             ]);
+            
 
             for ($i_total_day=1; $i_total_day <= $request->$total_days; $i_total_day++) {
 

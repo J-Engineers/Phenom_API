@@ -575,12 +575,7 @@ class ParantController extends Controller
 
     public function feedback(FeedbackRequest $request){
         $request->validated();
-
-       
-        
         $auth = auth()->user();
-        
-
       
         $return = LessonFeedback::create(
             [
@@ -738,7 +733,7 @@ class ParantController extends Controller
     
     public function add_lesson_subject(AddLessonSubjectRequest $request){
 
-    $request->validated();
+        $request->validated();
 
         $auth = auth()->user();
         

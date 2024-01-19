@@ -1,19 +1,23 @@
 <?php
 
+use App\Http\Middleware\ActiveUser;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LessonController;
-use App\Http\Controllers\Admin\LevelsSubjectsController;
-use App\Http\Controllers\Admin\TutorController as AdminTutorController;
-use App\Http\Controllers\Admin\ParentController as AdminParentController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Parent\ParantController;
-use App\Http\Controllers\Parent\ParentAuthController;
-use App\Http\Controllers\PublicController;
-use App\Http\Controllers\Tutors\TutorAuthController;
 use App\Http\Controllers\Tutors\TutorController;
 use App\Http\Controllers\User\ProfileController;
-use App\Http\Middleware\ActiveUser;
+use App\Http\Controllers\Parent\ParantController;
+use App\Http\Controllers\Admin\BookStoreController;
+use App\Http\Controllers\Tutors\TutorAuthController;
+use App\Http\Controllers\Parent\ParentAuthController;
+use App\Http\Controllers\Admin\LevelsSubjectsController;
+use App\Http\Controllers\BookStore\RequestBookController;
+use App\Http\Controllers\BookStore\BookStoreGuestController;
+use App\Http\Controllers\BookStore\RegisterBookStoreController;
+use App\Http\Controllers\Admin\TutorController as AdminTutorController;
+use App\Http\Controllers\Admin\ParentController as AdminParentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +35,7 @@ use App\Http\Middleware\ActiveUser;
 Route::post('/v1/user/registration', [AuthController::class, 'register'])->name('user.register');
 Route::post('/v1/tutor/registration', [TutorAuthController::class, 'signup'])->name('tutor.signup');
 Route::post('/v1/parent/registration', [ParentAuthController::class, 'signup'])->name('parent.signup');
+Route::post('/v1/bookshop/registration', [RegisterBookStoreController::class, 'signup'])->name('book.store.signup');
 
 Route::get('/v1/public/levels', [PublicController::class, 'viewLevels'])->name('levels.view');
 Route::get('/v1/public/level', [PublicController::class, 'viewLevel'])->name('level.view');
@@ -38,6 +43,8 @@ Route::get('/v1/public/subjects', [PublicController::class, 'viewSubjects'])->na
 Route::get('/v1/public/subject', [PublicController::class, 'viewSubject'])->name('subject.view');
 Route::get('/v1/public/level/subject', [PublicController::class, 'viewLevelSubject'])->name('levelsubject.view');
 Route::get('/v1/public/lesson/days', [PublicController::class, 'viewLessonDays'])->name('lessondays.view');
+Route::get('/v1/public/bookstore/categories', [BookStoreGuestController::class, 'bookstoreCategories'])->name('bookstore.categories');
+Route::post('/v1/public/bookstore/request', [RequestBookController::class, 'request_book'])->name('bookstore.request');
 
 
 Route::post('/v1/user/registration/verify', [AuthController::class, 'send_registration_verification_email'])->name('user.verify')->middleware(ActiveUser::class);
@@ -143,5 +150,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::delete('/v1/parent/lesson/learner/remove', [ParantController::class, 'remove_learner_from_lesson'])->name('parent.lesson.learner.remove');
             Route::post('/v1/parent/lesson/learner/subject/add', [ParantController::class, 'add_lesson_subject'])->name('parent.lesson.learner.subject.add');
         });
+
+        // Book Store Routes
+        Route::get('/v1/bookstore/books', [RegisterBookStoreController::class, 'books'])->name('bookstore.books');
+        Route::get('/v1/bookstore/book', [RegisterBookStoreController::class, 'book'])->name('bookstore.book');
+        Route::put('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_updates'])->name('bookstore.book.update');
+        Route::post('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_add'])->name('bookstore.book.add');
+        Route::delete('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_remove'])->name('bookstore.book.remove');
+    
     });
 });

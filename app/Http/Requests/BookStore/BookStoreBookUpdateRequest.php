@@ -11,7 +11,7 @@ class BookStoreBookUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,8 @@ class BookStoreBookUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|email',
+            'book_id' => 'required|string',
+            'name' => 'required|string',
             'author' => 'required|string',
             'isbn' => 'required|string',
             'quantity' => 'required|string',

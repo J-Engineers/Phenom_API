@@ -14,7 +14,7 @@ use App\Models\BookRequest;
 
 class RequestBookController extends Controller
 {
-    public function request(BookStoreRequestBookRequest $request){
+    public function request_book(BookStoreRequestBookRequest $request){
         $request->validated();
 
         for ($i_subjects=1; $i_subjects <= $request->total_books; $i_subjects++) {
@@ -43,52 +43,62 @@ class RequestBookController extends Controller
 
             $book = DB::table('book_store')
             ->select('book_price', 'book_name', 'book_author_name')
-            ->where(
-                [
-                    ['id', '=', $book_id],
-                ]
-            )->first();
+            ->where('id',  $request->$book_id)->first();
+            if($book){
 
-            $total_price += ((int)$book->book_price * (int)$book_quantity);
+                $total_price += ((int)$book->book_price * (int)$request->$book_quantity);
 
-            $message .= $book->book_name. " By " . $book->book_author_name . ", ";
+                $message .= $book->book_name. " By " . $book->book_author_name . ", ";
 
-            BookRequest::create([
-                'id' => (string)Str::uuid(),
-                'name' => $request->firstname." ".$request->lastname,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'book_id' => $book_id,
-                'quantity' => $book_quantity,
-                'status' => '0',
-            ]);
+                BookRequest::create([
+                    'id' => (string)Str::uuid(),
+                    'name' => $request->firstname." ".$request->lastname,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'address' => $request->address,
+                    'book_id' => $request->$book_id,
+                    'quantity' => $request->$book_quantity,
+                    'status' => '0',
+                ]);
 
+            }
+            
         }
 
-        $to_name = $request->firstname." ".$request->lastname;
-        $to_email = $request->email;
-        $data = array(
-           "name"=> $request->firstname." ".$request->lastname,
-           "body" => "Welcome to Phenom Platform, We are glad you have requested to buy books from our Book Stores. 
-                    We shall review your request and communicate with you further. Your have ordered the following 
-                    books : ".$message.". The total price is ".number_format($total_price, 2).". We shall get back to you after verifying the availability and delivery of the books. Thank you for trusting us."
-                    ,
-           "link" => env('APP_URL')
-        );
-       
-        if(!Mail::send("emails.registrationtutor", $data, function($message) use ($to_name, $to_email) {
-           $message->to($to_email, $to_name)->subject("Phenom Book Stores Request");
-           $message->from(env("MAIL_USERNAME", "jeorgejustice@gmail.com"), "Welcome");
-        })){
-
+        if($total_price > 0){
+            $to_name = $request->firstname." ".$request->lastname;
+            $to_email = $request->email;
+            $data = array(
+               "name"=> $request->firstname." ".$request->lastname,
+               "body" => "Welcome to Phenom Platform, We are glad you have requested to buy books from our Book Stores. 
+                        We shall review your request and communicate with you further. Your have ordered the following 
+                        books : ".$message.". The total price is ".number_format($total_price, 2).". We shall get back to you after verifying the availability and delivery of the books. Thank you for trusting us."
+                        ,
+               "link" => env('APP_URL')
+            );
+           
+            if(!Mail::send("emails.registrationtutor", $data, function($message) use ($to_name, $to_email) {
+               $message->to($to_email, $to_name)->subject("Phenom Book Stores Request");
+               $message->from(env("MAIL_USERNAME", "jeorgejustice@gmail.com"), "Welcome");
+            })){
+    
+                return response()->json([
+                   'status_code' => Response::HTTP_NOT_FOUND,
+                   'status' => 'error',
+                   'message' => 'Mail Not Sent, try again later',
+                   'data' => $request
+                ], Response::HTTP_NOT_FOUND);
+            }
+        }else{
             return response()->json([
-               'status_code' => Response::HTTP_NOT_FOUND,
-               'status' => 'error',
-               'message' => 'Mail Not Sent, try again later',
-               'data' => $request
-            ], Response::HTTP_NOT_FOUND);
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Request Failed',
+                'data' => []
+             ], Response::HTTP_NOT_FOUND);
         }
+
+       
 
         return response()->json(
             [

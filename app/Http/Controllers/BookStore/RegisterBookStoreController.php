@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Requests\BookStore\BookStoreBookRequest;
 use App\Http\Requests\BookStore\BookStoreBooksRequest;
 use App\Http\Requests\BookStore\BookStoreSignUpRequest;
+use App\Http\Requests\BookStore\BookStoreAddBookRequest;
 use App\Http\Requests\BookStore\BookStoreBookUpdateRequest;
 
 class RegisterBookStoreController extends Controller
@@ -55,7 +56,7 @@ class RegisterBookStoreController extends Controller
                 return response()->json([
                     'status_code' => Response::HTTP_UNAUTHORIZED,
                     'status' => 'error',
-                    'message' => 'File not Found',
+                    'message' => 'File not Found, upload a file for the cover of this book with the name book_cover_'.$i_subjects,
                 ], Response::HTTP_UNAUTHORIZED);
             }
         }
@@ -152,14 +153,14 @@ class RegisterBookStoreController extends Controller
             BookStore::create([
                 'id' => (string)Str::uuid(),
                 'store_user_id' => $user->id,
-                'book_name' => $book_name,
-                'book_author_name' => $book_author,
-                'book_isbn' => $book_isbn,
+                'book_name' => $request->$book_name,
+                'book_author_name' => $request->$book_author,
+                'book_isbn' => $request->$book_isbn,
                 'book_cover' => $base_path,
-                'book_category' => $book_category_id,
-                'book_quantity' => $book_quantity,
-                'book_price' => $book_price,
-                'book_description' => $book_description,
+                'book_category' => $request->$book_category_id,
+                'book_quantity' => $request->$book_quantity,
+                'book_price' => $request->$book_price,
+                'book_description' => $request->$book_description,
                 'status' => '0',
             ]);
         }
@@ -196,8 +197,8 @@ class RegisterBookStoreController extends Controller
                 $data['price'] = $book->book_price;
                 $data['desc'] = $book->book_description;
                 $data['category'] = $books_category->name;
-                $data['quantity'] = $books_category->book_quantity;
-                $data['isbn'] = $books_category->book_isbn;
+                $data['quantity'] = $book->book_quantity;
+                $data['isbn'] = $book->book_isbn;
                 array_push($all_books, $data);
 
             }
@@ -257,8 +258,8 @@ class RegisterBookStoreController extends Controller
                 $data['price'] = $book->book_price;
                 $data['desc'] = $book->book_description;
                 $data['category'] = $books_category->name;
-                $data['quantity'] = $books_category->book_quantity;
-                $data['isbn'] = $books_category->book_isbn;
+                $data['quantity'] = $book->book_quantity;
+                $data['isbn'] = $book->book_isbn;
                 array_push($all_books, $data);
 
             }
@@ -318,8 +319,8 @@ class RegisterBookStoreController extends Controller
                 $data['price'] = $book->book_price;
                 $data['desc'] = $book->book_description;
                 $data['category'] = $books_category->name;
-                $data['quantity'] = $books_category->book_quantity;
-                $data['isbn'] = $books_category->book_isbn;
+                $data['quantity'] = $book->book_quantity;
+                $data['isbn'] = $book->book_isbn;
                 array_push($all_books, $data);
 
             }
@@ -339,7 +340,7 @@ class RegisterBookStoreController extends Controller
         );
     }
 
-    public function book_update(BookStoreBookUpdateRequest $request){
+    public function book_updates(BookStoreBookUpdateRequest $request){
         $request->validated();
 
         $auth = auth()->user();
@@ -347,17 +348,14 @@ class RegisterBookStoreController extends Controller
         $user = User::where('id', $auth->id)->first();
         $store = BookStoreUser::where('user_id', $auth->id)->first();
 
-        $books = DB::table('book_store')
-        ->select(
-            'id', 'book_name', 'book_author_name', 'book_isbn', 'book_quantity',
-            'book_price', 'book_description', 'status',
-        )
-        ->where(
-            [
-                ['id', '=', $request->book_id]
-            ]
-        )
-        ->first();
+        $books = BookStore::where('id',  $request->book_id)->first();
+        if(!$books){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Book Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         $books->update(
             [
@@ -385,15 +383,84 @@ class RegisterBookStoreController extends Controller
         );
     }
 
-    public function book_remove(BookStoreBookRequest $request){
+    public function book_add(BookStoreAddBookRequest $request){
         $request->validated();
 
         $auth = auth()->user();
 
         $user = User::where('id', $auth->id)->first();
+        $store = BookStoreUser::where('user_id', $auth->id)->first();
+
+
+        if(!$request->hasfile('book_cover'))
+        {
+            return response()->json([
+                'status_code' => Response::HTTP_UNAUTHORIZED,
+                'status' => 'error',
+                'message' => 'File not Found, upload a file for the cover of this book with the name book_cover',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+
+        $book = BookStore::where(
+            [
+                ['book_name', '=', $request->book_name],
+                ['book_category', '=', $request->book_category_id],
+                ['book_isbn', '=', $request->book_isbn],
+            ]
+        )->first();
+        if($book && $book->num_rows > 0)
+        {
+            return response()->json([
+                'status_code' => Response::HTTP_UNAUTHORIZED,
+                'status' => 'error',
+                'message' => 'Book name already exist',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+
+        $file = $request->file('book_cover');
+        $name=time().$file->getClientOriginalName();
+        $filePath = 'images/' . $name;
+        $disk = Storage::disk('s3');
+        $disk->put($filePath, file_get_contents($file));
+        $base_path = $disk->url($filePath);
+
+        BookStore::create([
+            'id' => (string)Str::uuid(),
+            'store_user_id' => $user->id,
+            'book_name' => $request->book_name,
+            'book_author_name' => $request->book_author_name,
+            'book_isbn' => $request->book_isbn,
+            'book_cover' => $base_path,
+            'book_category' => $request->book_category,
+            'book_quantity' => $request->book_quantity,
+            'book_price' => $request->book_price,
+            'book_description' => $request->book_description,
+            'status' => '0',
+        ]);
+
+        
+        
+        return response()->json(
+            [
+                'status_code' => Response::HTTP_CREATED,
+                'status' => 'success',
+                'message' => 'Book Added',
+                'data' => [
+                    'user' => $user,
+                    'store' => $store,
+                ]
+            ], Response::HTTP_CREATED
+        );
+    }
+
+    public function book_remove(BookStoreBookRequest $request){
+
+        $request->validated();
+
         BookStore::where('id', $request->book_id)->delete();
 
-       
         return response()->json(
             [
                 'status_code' => Response::HTTP_CREATED,

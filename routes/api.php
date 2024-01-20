@@ -112,6 +112,22 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('/v1/admin/lesson/tutor', [LessonController::class, 'add_tutor'])->name('admin.lesson.merge');
         Route::put('/v1/admin/lesson/tutor/remove', [LessonController::class, 'remove_tutor'])->name('admin.lesson.unmerge');
         Route::put('/v1/admin/lesson/tutor/replace', [LessonController::class, 'replace_tutor'])->name('admin.lesson.replace');
+
+
+        // Admin - Book Store Routes
+        
+        Route::get('/v1/admin/bookstores', [BookStoreController::class, 'bookstores'])->name('bookshop.stores');
+        Route::get('/v1/admin/bookstore', [BookStoreController::class, 'bookstore'])->name('bookshop.store');
+        Route::delete('/v1/admin/bookstore', [BookStoreController::class, 'removebookstore'])->name('bookshop.store.remove');
+        Route::get('/v1/admin/bookstore/categories', [BookStoreController::class, 'bookstoreCategories'])->name('bookshop.categories');
+        Route::get('/v1/admin/bookstore/category', [BookStoreController::class, 'bookstoreCategory'])->name('bookshop.category');
+        Route::put('/v1/admin/bookstore/category', [BookStoreController::class, 'bookstoreCategoryUpdate'])->name('bookshop.category.update');
+        Route::delete('/v1/admin/bookstore/category', [BookStoreController::class, 'bookstoreCategoryRemove'])->name('bookshop.category.remove');
+        Route::post('/v1/admin/bookstore/category', [BookStoreController::class, 'bookstoreAddCategory'])->name('bookshop.category.add');
+        Route::get('/v1/admin/bookstore/requests', [BookStoreController::class, 'bookstorerequests'])->name('bookshop.requests');
+        Route::get('/v1/admin/bookstore/request', [BookStoreController::class, 'bookstorerequest'])->name('bookshop.request');
+        Route::get('/v1/admin/bookstore/user/request', [BookStoreController::class, 'bookrequestbookstore'])->name('bookshop.requests.bookstore');
+
         
 
         // Users Routes
@@ -152,11 +168,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         });
 
         // Book Store Routes
-        Route::get('/v1/bookstore/books', [RegisterBookStoreController::class, 'books'])->name('bookstore.books');
-        Route::get('/v1/bookstore/book', [RegisterBookStoreController::class, 'book'])->name('bookstore.book');
-        Route::put('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_updates'])->name('bookstore.book.update');
-        Route::post('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_add'])->name('bookstore.book.add');
-        Route::delete('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_remove'])->name('bookstore.book.remove');
+        Route::group(['middleware' => 'BookStoreAuthRoutes'], function(){
+            Route::get('/v1/bookstore/books', [RegisterBookStoreController::class, 'books'])->name('bookstore.books');
+            Route::get('/v1/bookstore/book', [RegisterBookStoreController::class, 'book'])->name('bookstore.book');
+            Route::put('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_updates'])->name('bookstore.book.update');
+            Route::post('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_add'])->name('bookstore.book.add');
+            Route::delete('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_remove'])->name('bookstore.book.remove');
+        });
     
     });
 });

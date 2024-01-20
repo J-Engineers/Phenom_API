@@ -271,7 +271,6 @@ class RegisterBookStoreController extends Controller
                 'status' => 'success',
                 'message' => 'User data',
                 'data' => [
-                    'user' => $user,
                     'store' => $store,
                     'books' => $all_books,
                 ]
@@ -332,7 +331,6 @@ class RegisterBookStoreController extends Controller
                 'status' => 'success',
                 'message' => 'User data',
                 'data' => [
-                    'user' => $user,
                     'store' => $store,
                     'books' => $all_books,
                 ]
@@ -375,7 +373,6 @@ class RegisterBookStoreController extends Controller
                 'status' => 'success',
                 'message' => 'Book Updated',
                 'data' => [
-                    'user' => $user,
                     'store' => $store,
                     'books' => $books,
                 ]
@@ -448,7 +445,6 @@ class RegisterBookStoreController extends Controller
                 'status' => 'success',
                 'message' => 'Book Added',
                 'data' => [
-                    'user' => $user,
                     'store' => $store,
                 ]
             ], Response::HTTP_CREATED

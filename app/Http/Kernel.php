@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'ActiveUser' => \App\Http\Middleware\ActiveUser::class,
         'ParentsAuthRoutes' => \App\Http\Middleware\ParentsAuthRoutes::class,
+        'BookStoreAuthRoutes' => \App\Http\Middleware\BookStoreAuthRoutes::class,
     ];
 }

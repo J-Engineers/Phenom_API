@@ -11,11 +11,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BookStoreRequest;
 use App\Http\Requests\Admin\BookStoreRequests;
 use Symfony\Component\HttpFoundation\Response;
-use App\Http\Requests\BookStoreCategoryRequest;
+use App\Http\Requests\Admin\BookStoreCategoryRequest;
 use App\Http\Requests\Admin\BookStoreCategoriesRequest;
 use App\Http\Requests\Admin\BookStoreCategoryUpdateRequest;
 use App\Http\Requests\BookStore\BookStoreGetRequestRequest;
 use App\Http\Requests\BookStore\BookStoresGetRequestRequest;
+use Illuminate\Support\Str;
 
 class BookStoreController extends Controller
 {
@@ -150,6 +151,51 @@ class BookStoreController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function bookstoreAddCategory(BookStoreCategoriesRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $query = DB::table('store_category')
+        ->select('id', 'name')
+        ->where(
+            [
+                ['name', '=', $request->name],
+            ]
+        )
+        ->first();
+        if($query){
+
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Category Already exist'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $category = BookCategory::create(
+            [
+                'id' => (string)Str::uuid(),
+                'name' => $request->name
+            ]
+        );
+        
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Store Category Created',
+            'data' => [
+                'category' => $category
+            ]
+        ], Response::HTTP_OK);
+    }
+
     public function bookstoreCategories(BookStoreCategoriesRequest $request){
         $request->validated();
 
@@ -219,14 +265,12 @@ class BookStoreController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $query = DB::table('store_category')
-        ->select('name')
-        ->where(
+        $query = BookCategory::where(
             [
                 ['id', '=', $request->category_id],
             ]
         )
-        ->get();
+        ->first();
         if(!$query){
             return response()->json([
                 'status_code' => Response::HTTP_NOT_FOUND,
@@ -235,7 +279,9 @@ class BookStoreController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $query->update(['name' => $request->name]);
+        $query->update(
+            ['name' => $request->name]
+        );
         
         return response()->json([
             'status_code' => Response::HTTP_OK,
@@ -296,7 +342,6 @@ class BookStoreController extends Controller
                 $book_id = $request_book->book_id;
                 $quantity = $request_book->quantity;
                 $id = $request_book->id;
-                $book_id = $request_book->book_id;
 
                 $data =  [];
                 $query1 = BookStore::where('id', $book_id)->first();
@@ -334,7 +379,7 @@ class BookStoreController extends Controller
                     $data['store']['email'] = $store_email;
                     $data['store']['phone'] = $store_phone;
                     $data['store']['address'] = $store_address;
-                    $data['store']['id'] = $store_user_id;
+                    $data['store']['id'] = $book_id;
 
                     $data['book'] = [];
 
@@ -356,6 +401,7 @@ class BookStoreController extends Controller
                     $data['request']['address'] = $address;
                     $data['request']['quantity'] = $quantity;
                     $data['request']['id'] = $id;
+                    $data['request']['price'] = (int)$quantity * (int)$book_price;
                     array_push($all_book_stores, $data);
                     
                 }
@@ -399,7 +445,6 @@ class BookStoreController extends Controller
                 $email = $request_book->email;
                 $phone = $request_book->phone;
                 $address = $request_book->address;
-                $book_id = $request_book->book_id;
                 $quantity = $request_book->quantity;
                 $id = $request_book->id;
                 $book_id = $request_book->book_id;
@@ -440,7 +485,7 @@ class BookStoreController extends Controller
                     $data['store']['email'] = $store_email;
                     $data['store']['phone'] = $store_phone;
                     $data['store']['address'] = $store_address;
-                    $data['store']['id'] = $store_user_id;
+                    $data['store']['id'] = $book_id;
 
                     $data['book'] = [];
 
@@ -462,6 +507,7 @@ class BookStoreController extends Controller
                     $data['request']['address'] = $address;
                     $data['request']['quantity'] = $quantity;
                     $data['request']['id'] = $id;
+                    $data['request']['price'] = (int)$quantity * (int)$book_price;
                     array_push($all_book_stores, $data);
                     
                 }
@@ -513,6 +559,8 @@ class BookStoreController extends Controller
             $book_price = $query->book_price;
             $book_description = $query->book_description;
 
+            // dd($query->book_description);
+
             $query2 = BookStoreUser::where('user_id', $store_user_id)->first();
             if($query2){
                 $store_address = $query2->store_address;
@@ -536,7 +584,7 @@ class BookStoreController extends Controller
             $data['store']['email'] = $store_email;
             $data['store']['phone'] = $store_phone;
             $data['store']['address'] = $store_address;
-            $data['store']['id'] = $store_user_id;
+            $data['store']['id'] = $request->book_store_id;
 
             $data['book'] = [];
 
@@ -575,12 +623,13 @@ class BookStoreController extends Controller
                     $data['requests']['request']['address'] = $address;
                     $data['requests']['request']['quantity'] = $quantity;
                     $data['requests']['request']['id'] = $id;
+                    $data['request']['price'] = (int)$quantity * (int)$book_price;
+
+                    array_push($all_book_stores, $data);
                     
                 }
-            }
-            array_push($all_book_stores, $data);
+            }  
         }
-
         
         return response()->json([
             'status_code' => Response::HTTP_OK,

@@ -44,6 +44,8 @@ Route::get('/v1/public/subject', [PublicController::class, 'viewSubject'])->name
 Route::get('/v1/public/level/subject', [PublicController::class, 'viewLevelSubject'])->name('levelsubject.view');
 Route::get('/v1/public/lesson/days', [PublicController::class, 'viewLessonDays'])->name('lessondays.view');
 Route::get('/v1/public/bookstore/categories', [BookStoreGuestController::class, 'bookstoreCategories'])->name('bookstore.categories');
+Route::get('/v1/public/bookstore/books', [BookStoreGuestController::class, 'books'])->name('bookstore.books');
+Route::get('/v1/public/bookstore/book', [BookStoreGuestController::class, 'book'])->name('bookstore.book');
 Route::post('/v1/public/bookstore/request', [RequestBookController::class, 'request_book'])->name('bookstore.request');
 
 

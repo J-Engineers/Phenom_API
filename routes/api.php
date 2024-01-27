@@ -44,8 +44,10 @@ Route::get('/v1/public/subject', [PublicController::class, 'viewSubject'])->name
 Route::get('/v1/public/level/subject', [PublicController::class, 'viewLevelSubject'])->name('levelsubject.view');
 Route::get('/v1/public/lesson/days', [PublicController::class, 'viewLessonDays'])->name('lessondays.view');
 Route::get('/v1/public/bookstore/categories', [BookStoreGuestController::class, 'bookstoreCategories'])->name('bookstore.categories');
+Route::get('/v1/public/bookstore/books/search', [BookStoreGuestController::class, 'books_search'])->name('bookstore.books_search');
 Route::get('/v1/public/bookstore/books', [BookStoreGuestController::class, 'books'])->name('bookstore.books');
 Route::get('/v1/public/bookstore/book', [BookStoreGuestController::class, 'book'])->name('bookstore.book');
+Route::post('/v1/public/bookstore/request/random', [RequestBookController::class, 'request_book_random'])->name('bookstore.request_book_random');
 Route::post('/v1/public/bookstore/request', [RequestBookController::class, 'request_book'])->name('bookstore.request');
 
 
@@ -130,7 +132,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/v1/admin/bookstore/request', [BookStoreController::class, 'bookstorerequest'])->name('bookshop.request');
         Route::get('/v1/admin/bookstore/user/request', [BookStoreController::class, 'bookrequestbookstore'])->name('bookshop.requests.bookstore');
 
-        
+        Route::get('/v1/admin/bookstore/request/randoms', [BookStoreController::class, 'bookrequests'])->name('bookshop.requests.bookrequests');
+        Route::get('/v1/admin/bookstore/request/random', [BookStoreController::class, 'bookrequest'])->name('bookshop.requests.bookrequest');
+        Route::get('/v1/admin/bookstore/books', [BookStoreController::class, 'bookstorebooks'])->name('bookshop.requests.bookstorebooks');
+        Route::get('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebook'])->name('bookshop.requests.bookstorebook');
+        Route::post('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookapprove'])->name('bookshop.requests.bookstorebookapprove');
+        Route::put('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookrevoke'])->name('bookshop.requests.bookstorebookrevoke');
+        Route::delete('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookremove'])->name('bookshop.requests.bookstorebookremove');
 
         // Users Routes
         Route::get('/v1/user', [ProfileController::class, 'details'])->name('user.details');

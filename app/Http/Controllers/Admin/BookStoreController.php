@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\BookStore;
+use Illuminate\Support\Str;
 use App\Models\BookCategory;
 use App\Models\BookStoreUser;
 use Illuminate\Support\Facades\DB;
@@ -11,12 +12,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BookStoreRequest;
 use App\Http\Requests\Admin\BookStoreRequests;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\Admin\BookStoreBookRequest;
+use App\Http\Requests\Admin\BookStoreBooksRequest;
 use App\Http\Requests\Admin\BookStoreCategoryRequest;
 use App\Http\Requests\Admin\BookStoreCategoriesRequest;
 use App\Http\Requests\Admin\BookStoreCategoryUpdateRequest;
 use App\Http\Requests\BookStore\BookStoreGetRequestRequest;
 use App\Http\Requests\BookStore\BookStoresGetRequestRequest;
-use Illuminate\Support\Str;
 
 class BookStoreController extends Controller
 {
@@ -355,11 +357,15 @@ class BookStoreController extends Controller
                     $book_quantity = $query1->book_quantity;
                     $book_price = $query1->book_price;
                     $book_description = $query1->book_description;
-
+                    
+                    $store_address = '';
                     $query2 = BookStoreUser::where('user_id', $store_user_id)->first();
                     if($query2){
                         $store_address = $query2->store_address;
                     }
+                    $store_name = '';
+                    $store_email = '';
+                    $store_phone = '';
 
                     $query3 = User::where('id', $store_user_id)->first();
                     if($query3){
@@ -367,6 +373,7 @@ class BookStoreController extends Controller
                         $store_email = $query3->email;
                         $store_phone = $query3->phone;
                     }
+                    $store_book_category = '';
 
                     $query4 = BookCategory::where('id', $book_category)->first();
                     if($query4){
@@ -461,7 +468,13 @@ class BookStoreController extends Controller
                     $book_quantity = $query1->book_quantity;
                     $book_price = $query1->book_price;
                     $book_description = $query1->book_description;
-
+                    
+                    
+                    $store_address = '';
+                    $store_name = '';
+                    $store_phone = '';
+                    $store_email = '';
+                    $store_book_category = '';
                     $query2 = BookStoreUser::where('user_id', $store_user_id)->first();
                     if($query2){
                         $store_address = $query2->store_address;
@@ -560,6 +573,12 @@ class BookStoreController extends Controller
             $book_description = $query->book_description;
 
             // dd($query->book_description);
+            
+            $store_address = '';
+            $store_name = '';
+            $store_phone = '';
+            $store_email = '';
+            $store_book_category = '';
 
             $query2 = BookStoreUser::where('user_id', $store_user_id)->first();
             if($query2){
@@ -637,6 +656,348 @@ class BookStoreController extends Controller
             'message' => 'Book Stores Request',
             'data' => [
                 'stores' => $all_book_stores
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookrequests(BookStoreRequests $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = DB::table('book_store_random_requests')
+        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id')
+        ->get();
+        if($query0){
+            foreach($query0 as $request_book){
+                $name = $request_book->name;
+                $email = $request_book->email;
+                $phone = $request_book->phone;
+                $address = $request_book->address;
+                $book_name = $request_book->book_name;
+                $book_author = $request_book->book_author;
+                $id = $request_book->id;
+
+                $all_book_stores = [];
+
+                $all_book_stores['name'] = $name;
+                $all_book_stores['email'] = $email;
+                $all_book_stores['phone'] = $phone;
+                $all_book_stores['address'] = $address;
+                $all_book_stores['book_name'] = $book_name;
+                $all_book_stores['book_author'] = $book_author;
+                $all_book_stores['id'] = $id;
+
+                array_push($all, $all_book_stores);
+            }
+        }
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book  Requests',
+            'data' => [
+                'stores' => $all
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookrequest(BookStoreGetRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = DB::table('book_store_random_requests')
+        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id')
+        ->where(
+            [
+                ['id', '=', $request->request_id],
+            ]
+        )
+        ->get();
+        if($query0){
+            foreach($query0 as $request_book){
+                $name = $request_book->name;
+                $email = $request_book->email;
+                $phone = $request_book->phone;
+                $address = $request_book->address;
+                $book_name = $request_book->book_name;
+                $book_author = $request_book->book_author;
+                $id = $request_book->id;
+
+                $all_book_stores = [];
+
+                $all_book_stores['name'] = $name;
+                $all_book_stores['email'] = $email;
+                $all_book_stores['phone'] = $phone;
+                $all_book_stores['address'] = $address;
+                $all_book_stores['book_name'] = $book_name;
+                $all_book_stores['book_author'] = $book_author;
+                $all_book_stores['id'] = $id;
+
+                array_push($all, $all_book_stores);
+            }
+        }
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book  Request',
+            'data' => [
+                'stores' => $all
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookstorebooks(BookStoreBooksRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookStore::all();
+        if($query0){
+            foreach($query0 as $request_book){
+                $store_user_id  = $request_book->store_user_id;
+                $book_name  = $request_book->book_name;
+                $book_author_name  = $request_book->book_author_name;
+                $book_isbn  = $request_book->book_isbn;
+                $book_cover  = $request_book->book_cover;
+                $book_category  = $request_book->book_category;
+                $book_quantity  = $request_book->book_quantity;
+                $book_price  = $request_book->book_price;
+                $book_description  = $request_book->book_description;
+                $status  = $request_book->status;
+
+                $all_book_stores = [];
+                $book_category_name = '';
+                $book_category_query = BookCategory::where('id', $book_category)->first();
+                if($book_category_query){
+                    $book_category_name = $book_category_query->name;
+                }
+                
+                
+                $bookshop_name = '';
+                $bookshop_contact = '';
+                $bookshop_address = '';
+                $bookshop_photo = '';
+
+                $book_shop_user_query = User::where('id', $store_user_id)->first();
+                if($book_shop_user_query){
+                    $bookshop_name = $book_shop_user_query->first_name." ".$book_shop_user_query->last_name;
+                    $bookshop_contact = $book_shop_user_query->phone;
+                    $bookshop_address = $book_shop_user_query->address;
+                    $bookshop_photo = $book_shop_user_query->photo;
+                }
+                
+
+
+                $all_book_stores['book_name'] = $book_name;
+                $all_book_stores['book_author_name'] = $book_author_name;
+                $all_book_stores['book_isbn'] = $book_isbn;
+                $all_book_stores['book_cover'] = $book_cover;
+                $all_book_stores['book_quantity'] = $book_quantity;
+                $all_book_stores['book_description'] = $book_description;
+                $all_book_stores['book_price'] = $book_price;
+                $all_book_stores['book_status'] = $book_description;
+                $all_book_stores['book_description'] = $status;
+                $all_book_stores['book_category'] = $book_category_name;
+                $all_book_stores['book_publisher_name'] = $bookshop_name;
+                $all_book_stores['book_publisher_contact'] = $bookshop_contact;
+                $all_book_stores['book_publisher_address'] = $bookshop_address;
+                $all_book_stores['book_publisher_photo'] = $bookshop_photo;
+                $all_book_stores['id'] = $request_book->id;
+
+                array_push($all, $all_book_stores);
+            }
+        }
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Store',
+            'data' => [
+                'books' => $all
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookstorebook(BookStoreBookRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $request_book = BookStore::where('id', $request->book_id)->first();
+        if($request_book){
+            
+                $store_user_id  = $request_book->store_user_id;
+                $book_name  = $request_book->book_name;
+                $book_author_name  = $request_book->book_author_name;
+                $book_isbn  = $request_book->book_isbn;
+                $book_cover  = $request_book->book_cover;
+                $book_category  = $request_book->book_category;
+                $book_quantity  = $request_book->book_quantity;
+                $book_price  = $request_book->book_price;
+                $book_description  = $request_book->book_description;
+                $status  = $request_book->status;
+
+                $all_book_stores = [];
+
+                $all_book_stores = [];
+                $book_category_name = '';
+                $book_category_query = BookCategory::where('id', $book_category)->first();
+                if($book_category_query){
+                    $book_category_name = $book_category_query->name;
+                }
+                
+                
+                $bookshop_name = '';
+                $bookshop_contact = '';
+                $bookshop_address = '';
+                $bookshop_photo = '';
+
+                $book_shop_user_query = User::where('id', $store_user_id)->first();
+                if($book_shop_user_query){
+                    $bookshop_name = $book_shop_user_query->first_name." ".$book_shop_user_query->last_name;
+                    $bookshop_contact = $book_shop_user_query->phone;
+                    $bookshop_address = $book_shop_user_query->address;
+                    $bookshop_photo = $book_shop_user_query->photo;
+                }
+                
+
+
+                $all_book_stores['book_name'] = $book_name;
+                $all_book_stores['book_author_name'] = $book_author_name;
+                $all_book_stores['book_isbn'] = $book_isbn;
+                $all_book_stores['book_cover'] = $book_cover;
+                $all_book_stores['book_quantity'] = $book_quantity;
+                $all_book_stores['book_description'] = $book_description;
+                $all_book_stores['book_price'] = $book_price;
+                $all_book_stores['book_status'] = $book_description;
+                $all_book_stores['book_description'] = $status;
+                $all_book_stores['book_category'] = $book_category_name;
+                $all_book_stores['book_publisher_name'] = $bookshop_name;
+                $all_book_stores['book_publisher_contact'] = $bookshop_contact;
+                $all_book_stores['book_publisher_address'] = $bookshop_address;
+                $all_book_stores['book_publisher_photo'] = $bookshop_photo;
+                $all_book_stores['id'] = $request_book->id;
+
+                array_push($all, $all_book_stores);
+            
+        }
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Store',
+            'data' => [
+                'book' => $all
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookstorebookapprove(BookStoreBookRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookStore::where('id', $request->book_id)->first();
+        $query0->update([
+            'status' => 1
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Approved',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookstorebookrevoke(BookStoreBookRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookStore::where('id', $request->book_id)->first();
+        $query0->update([
+            'status' => 0
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Declined',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function bookstorebookremove(BookStoreBookRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        BookStore::where('id', $request->userbook_id_id)->delete();
+       
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Removed',
+            'data' => [
             ]
         ], Response::HTTP_OK);
     }

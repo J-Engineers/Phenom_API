@@ -271,6 +271,7 @@ class RegisterBookStoreController extends Controller
                 'status' => 'success',
                 'message' => 'User data',
                 'data' => [
+                    'user' => $user,
                     'store' => $store,
                     'books' => $all_books,
                 ]

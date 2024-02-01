@@ -131,7 +131,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/v1/admin/bookstore/requests', [BookStoreController::class, 'bookstorerequests'])->name('bookshop.requests');
         Route::get('/v1/admin/bookstore/request', [BookStoreController::class, 'bookstorerequest'])->name('bookshop.request');
         Route::get('/v1/admin/bookstore/user/request', [BookStoreController::class, 'bookrequestbookstore'])->name('bookshop.requests.bookstore');
-
         Route::get('/v1/admin/bookstore/request/randoms', [BookStoreController::class, 'bookrequests'])->name('bookshop.requests.bookrequests');
         Route::get('/v1/admin/bookstore/request/random', [BookStoreController::class, 'bookrequest'])->name('bookshop.requests.bookrequest');
         Route::get('/v1/admin/bookstore/books', [BookStoreController::class, 'bookstorebooks'])->name('bookshop.requests.bookstorebooks');
@@ -139,6 +138,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookapprove'])->name('bookshop.requests.bookstorebookapprove');
         Route::put('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookrevoke'])->name('bookshop.requests.bookstorebookrevoke');
         Route::delete('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookremove'])->name('bookshop.requests.bookstorebookremove');
+
+        Route::post('/v1/admin/bookstore/request', [BookStoreController::class, 'completeRequest'])->name('bookshop.requests.completeRequest');
+        Route::put('/v1/admin/bookstore/request', [BookStoreController::class, 'reopenRequest'])->name('bookshop.requests.reopenRequest');
+        Route::delete('/v1/admin/bookstore/request', [BookStoreController::class, 'removeRequest'])->name('bookshop.requests.removeRequest');
+        Route::post('/v1/admin/bookstore/randomrequest', [BookStoreController::class, 'completeRequest1'])->name('bookshop.requests.completeRequest1');
+        Route::put('/v1/admin/bookstore/randomrequest', [BookStoreController::class, 'reopenRequest1'])->name('bookshop.requests.reopenRequest1');
+        Route::delete('/v1/admin/bookstore/randomrequest', [BookStoreController::class, 'removeRequest1'])->name('bookshop.requests.removeRequest1');
+
+
 
         // Users Routes
         Route::get('/v1/user', [ProfileController::class, 'details'])->name('user.details');

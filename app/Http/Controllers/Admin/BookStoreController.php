@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Models\BookStore;
+use App\Models\BookRequest;
 use Illuminate\Support\Str;
 use App\Models\BookCategory;
 use App\Models\BookStoreUser;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\BookStoreRandomRequest;
 use App\Http\Requests\Admin\BookStoreRequest;
 use App\Http\Requests\Admin\BookStoreRequests;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\Admin\BookRequestRequest;
 use App\Http\Requests\Admin\BookStoreBookRequest;
 use App\Http\Requests\Admin\BookStoreBooksRequest;
 use App\Http\Requests\Admin\BookStoreCategoryRequest;
@@ -44,13 +47,13 @@ class BookStoreController extends Controller
         )
         ->get();
         if($query0){
-            foreach($query0 as $user){
-                $first_name = $user->first_name;
-                $last_name = $user->last_name;
-                $address = $user->address;
-                $phone = $user->phone;
-                $id = $user->id;
-                $email = $user->email;
+            foreach($query0 as $user1){
+                $first_name = $user1->first_name;
+                $last_name = $user1->last_name;
+                $address = $user1->address;
+                $phone = $user1->phone;
+                $id = $user1->id;
+                $email = $user1->email;
                 $data =  [];
                 $query1 = BookStoreUser::where('user_id', $id)->first();
                 if($query1){
@@ -63,13 +66,54 @@ class BookStoreController extends Controller
                     $data['id'] = $id;
                     $data['shop_address'] = $shop_address;
                 }
+                
+                $all_books = [];
+                $books = DB::table('book_store')
+                ->select(
+                    'id', 'book_name', 'book_author_name', 'book_isbn', 
+                    'book_cover', 'book_category as book_category_id', 'book_quantity',
+                    'book_price', 'book_description', 'status'
+                )
+                ->where(
+                    [
+                        ['store_user_id', '=', $id]
+                    ]
+                )
+                ->get();
+                if($books){
+                    foreach($books as $book){
+        
+                        $books_category = BookCategory::where(
+                            [
+                                ['id', '=', $book->book_category_id],
+                            ]
+                        )->first();
+        
+                        $data1['id'] = $book->id;
+                        $data1['name'] = $book->book_name;
+                        $data1['author'] = $book->book_author_name;
+                        $data1['img'] = $book->book_cover;
+                        $data1['price'] = $book->book_price;
+                        $data1['desc'] = $book->book_description;
+                        $data1['category'] = $books_category->name;
+                        $data1['quantity'] = $book->book_quantity;
+                        $data1['isbn'] = $book->book_isbn;
+                        
+                        $data1['status'] = (isset($book->status) OR $book->status == 0)?'Not Approved':'Approved';
+                        
+                        
+                        array_push($all_books, $data1);
+        
+                    }
+                }
+                $data['books'] = $all_books;
                 array_push($all_book_stores, $data);
             }
         }
         return response()->json([
             'status_code' => Response::HTTP_OK,
             'status' => 'success',
-            'message' => 'Book Stores',
+            'message' => 'Book Stores 1',
             'data' => [
                 'stores' => $all_book_stores
             ]
@@ -98,13 +142,13 @@ class BookStoreController extends Controller
         )
         ->get();
         if($query0){
-            foreach($query0 as $user){
-                $first_name = $user->first_name;
-                $last_name = $user->last_name;
-                $address = $user->address;
-                $phone = $user->phone;
-                $id = $user->id;
-                $email = $user->email;
+            foreach($query0 as $user1){
+                $first_name = $user1->first_name;
+                $last_name = $user1->last_name;
+                $address = $user1->address;
+                $phone = $user1->phone;
+                $id = $user1->id;
+                $email = $user1->email;
                 $data =  [];
                 $query1 = BookStoreUser::where('user_id', $id)->first();
                 if($query1){
@@ -117,6 +161,47 @@ class BookStoreController extends Controller
                     $data['id'] = $id;
                     $data['shop_address'] = $shop_address;
                 }
+
+                $all_books = [];
+                $books = DB::table('book_store')
+                ->select(
+                    'id', 'book_name', 'book_author_name', 'book_isbn', 
+                    'book_cover', 'book_category as book_category_id', 'book_quantity',
+                    'book_price', 'book_description', 'status'
+                )
+                ->where(
+                    [
+                        ['store_user_id', '=', $id]
+                    ]
+                )
+                ->get();
+                if($books){
+                    foreach($books as $book){
+        
+                        $books_category = BookCategory::where(
+                            [
+                                ['id', '=', $book->book_category_id],
+                            ]
+                        )->first();
+        
+                        $data1['id'] = $book->id;
+                        $data1['name'] = $book->book_name;
+                        $data1['author'] = $book->book_author_name;
+                        $data1['img'] = $book->book_cover;
+                        $data1['price'] = $book->book_price;
+                        $data1['desc'] = $book->book_description;
+                        $data1['category'] = $books_category->name;
+                        $data1['quantity'] = $book->book_quantity;
+                        $data1['isbn'] = $book->book_isbn;
+                        
+                        $data1['status'] = (isset($book->status) OR $book->status == 0)?'Not Approved':'Approved';
+                        
+                        
+                        array_push($all_books, $data1);
+        
+                    }
+                }
+                $data['books'] = $all_books;
                 array_push($all_book_stores, $data);
             }
         }
@@ -342,6 +427,7 @@ class BookStoreController extends Controller
                 $phone = $request_book->phone;
                 $address = $request_book->address;
                 $book_id = $request_book->book_id;
+                $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
                 $quantity = $request_book->quantity;
                 $id = $request_book->id;
 
@@ -408,6 +494,7 @@ class BookStoreController extends Controller
                     $data['request']['address'] = $address;
                     $data['request']['quantity'] = $quantity;
                     $data['request']['id'] = $id;
+                    $data['request']['status'] = $status;
                     $data['request']['price'] = (int)$quantity * (int)$book_price;
                     array_push($all_book_stores, $data);
                     
@@ -455,6 +542,7 @@ class BookStoreController extends Controller
                 $quantity = $request_book->quantity;
                 $id = $request_book->id;
                 $book_id = $request_book->book_id;
+                $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
 
                 $data =  [];
                 $query1 = BookStore::where('id', $book_id)->first();
@@ -520,6 +608,7 @@ class BookStoreController extends Controller
                     $data['request']['address'] = $address;
                     $data['request']['quantity'] = $quantity;
                     $data['request']['id'] = $id;
+                    $data['request']['status'] = $status;
                     $data['request']['price'] = (int)$quantity * (int)$book_price;
                     array_push($all_book_stores, $data);
                     
@@ -635,6 +724,7 @@ class BookStoreController extends Controller
                     $address = $request_book->address;
                     $quantity = $request_book->quantity;
                     $id = $request_book->id;
+                    $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
 
                     $data['requests']['request']['name'] = $name;
                     $data['requests']['request']['email'] = $email;
@@ -642,7 +732,8 @@ class BookStoreController extends Controller
                     $data['requests']['request']['address'] = $address;
                     $data['requests']['request']['quantity'] = $quantity;
                     $data['requests']['request']['id'] = $id;
-                    $data['request']['price'] = (int)$quantity * (int)$book_price;
+                    $data['requests']['request']['status'] = $status;
+                    $data['requests']['request']['price'] = (int)$quantity * (int)$book_price;
 
                     array_push($all_book_stores, $data);
                     
@@ -674,7 +765,7 @@ class BookStoreController extends Controller
 
         $all = [];
         $query0 = DB::table('book_store_random_requests')
-        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id')
+        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id', 'status')
         ->get();
         if($query0){
             foreach($query0 as $request_book){
@@ -685,6 +776,7 @@ class BookStoreController extends Controller
                 $book_name = $request_book->book_name;
                 $book_author = $request_book->book_author;
                 $id = $request_book->id;
+                $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
 
                 $all_book_stores = [];
 
@@ -694,6 +786,7 @@ class BookStoreController extends Controller
                 $all_book_stores['address'] = $address;
                 $all_book_stores['book_name'] = $book_name;
                 $all_book_stores['book_author'] = $book_author;
+                $all_book_stores['status'] = $status;
                 $all_book_stores['id'] = $id;
 
                 array_push($all, $all_book_stores);
@@ -723,7 +816,7 @@ class BookStoreController extends Controller
 
         $all = [];
         $query0 = DB::table('book_store_random_requests')
-        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id')
+        ->select('name', 'email', 'phone', 'address', 'book_name', 'book_author', 'id', 'status')
         ->where(
             [
                 ['id', '=', $request->request_id],
@@ -739,6 +832,7 @@ class BookStoreController extends Controller
                 $book_name = $request_book->book_name;
                 $book_author = $request_book->book_author;
                 $id = $request_book->id;
+                $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
 
                 $all_book_stores = [];
 
@@ -748,6 +842,7 @@ class BookStoreController extends Controller
                 $all_book_stores['address'] = $address;
                 $all_book_stores['book_name'] = $book_name;
                 $all_book_stores['book_author'] = $book_author;
+                $all_book_stores['status'] = $status;
                 $all_book_stores['id'] = $id;
 
                 array_push($all, $all_book_stores);
@@ -788,7 +883,7 @@ class BookStoreController extends Controller
                 $book_quantity  = $request_book->book_quantity;
                 $book_price  = $request_book->book_price;
                 $book_description  = $request_book->book_description;
-                $status  = $request_book->status;
+                $status  = (isset($request_book->status) OR $request_book->status == 0)?'Not Approved':'Approved';
 
                 $all_book_stores = [];
                 $book_category_name = '';
@@ -820,8 +915,7 @@ class BookStoreController extends Controller
                 $all_book_stores['book_quantity'] = $book_quantity;
                 $all_book_stores['book_description'] = $book_description;
                 $all_book_stores['book_price'] = $book_price;
-                $all_book_stores['book_status'] = $book_description;
-                $all_book_stores['book_description'] = $status;
+                $all_book_stores['book_status'] = $status;
                 $all_book_stores['book_category'] = $book_category_name;
                 $all_book_stores['book_publisher_name'] = $bookshop_name;
                 $all_book_stores['book_publisher_contact'] = $bookshop_contact;
@@ -867,7 +961,7 @@ class BookStoreController extends Controller
                 $book_quantity  = $request_book->book_quantity;
                 $book_price  = $request_book->book_price;
                 $book_description  = $request_book->book_description;
-                $status  = $request_book->status;
+                $status  = (isset($request_book->status) OR $request_book->status == 0)?'Not Approved':'Approved';
 
                 $all_book_stores = [];
 
@@ -901,8 +995,7 @@ class BookStoreController extends Controller
                 $all_book_stores['book_quantity'] = $book_quantity;
                 $all_book_stores['book_description'] = $book_description;
                 $all_book_stores['book_price'] = $book_price;
-                $all_book_stores['book_status'] = $book_description;
-                $all_book_stores['book_description'] = $status;
+                $all_book_stores['book_status'] = $status;
                 $all_book_stores['book_category'] = $book_category_name;
                 $all_book_stores['book_publisher_name'] = $bookshop_name;
                 $all_book_stores['book_publisher_contact'] = $bookshop_contact;
@@ -937,6 +1030,13 @@ class BookStoreController extends Controller
 
         $all = [];
         $query0 = BookStore::where('id', $request->book_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
         $query0->update([
             'status' => 1
         ]);
@@ -965,6 +1065,13 @@ class BookStoreController extends Controller
 
         $all = [];
         $query0 = BookStore::where('id', $request->book_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
         $query0->update([
             'status' => 0
         ]);
@@ -990,13 +1097,225 @@ class BookStoreController extends Controller
                 'message' => 'Unauthorized'
             ], Response::HTTP_NOT_FOUND);
         }
-        BookStore::where('id', $request->userbook_id_id)->delete();
+        $query0 = BookStore::where('id', $request->book_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        BookStore::where('id', $request->book_id)->delete();
+        
        
 
         return response()->json([
             'status_code' => Response::HTTP_OK,
             'status' => 'success',
             'message' => 'Book Removed',
+            'data' => [
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function completeRequest(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $query0->update([
+            'status' => 1
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Delivered',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function reopenRequest(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $query0->update([
+            'status' => 0
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Reopened',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function removeRequest(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        $query0 = BookRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        BookRequest::where('id', $request->request_id)->delete();
+       
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Removed',
+            'data' => [
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function completeRequest1(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookStoreRandomRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $query0->update([
+            'status' => 1
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Delivered',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function reopenRequest1(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $all = [];
+        $query0 = BookStoreRandomRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $query0->update([
+            'status' => 0
+        ]);
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Reopened',
+            'data' => [
+                'book' => $query0
+            ]
+        ], Response::HTTP_OK);
+    }
+
+    public function removeRequest1(BookRequestRequest $request){
+        $request->validated();
+
+        $user = auth()->user();
+        if(!$user->is_admin === true){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        $query0 = BookStoreRandomRequest::where('id', $request->request_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'Bad request'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        BookStoreRandomRequest::where('id', $request->request_id)->delete();
+       
+
+        return response()->json([
+            'status_code' => Response::HTTP_OK,
+            'status' => 'success',
+            'message' => 'Book Request Removed',
             'data' => [
             ]
         ], Response::HTTP_OK);

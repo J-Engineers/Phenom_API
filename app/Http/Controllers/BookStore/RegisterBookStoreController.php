@@ -260,6 +260,40 @@ class RegisterBookStoreController extends Controller
                 $data['category'] = $books_category->name;
                 $data['quantity'] = $book->book_quantity;
                 $data['isbn'] = $book->book_isbn;
+                $data['status'] = (isset($book->status) OR $book->status == 0)?'Not Approved':'Approved';
+
+                $all_requests = [];
+
+                $query0 = DB::table('book_store_request')
+                ->select('name', 'email', 'phone', 'address', 'book_id', 'quantity', 'status', 'id', 'book_id')
+                ->where(
+                    [
+                        ['book_id', '=', $book->id]
+                    ]
+                )
+                ->get();
+                if($query0){
+                    foreach($query0 as $request_book){
+                        $name = $request_book->name;
+                        $email = $request_book->email;
+                        $phone = $request_book->phone;
+                        $address = $request_book->address;
+                        $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
+                        $quantity = $request_book->quantity;
+                        $id = $request_book->id;
+
+                        $all_request['name'] = $name;
+                        $all_request['email'] = $email;
+                        $all_request['phone'] = $phone;
+                        $all_request['address'] = $address;
+                        $all_request['status'] = $status;
+                        $all_request['quantity'] = $quantity;
+                        $all_request['id'] = $id;
+                        array_push($all_requests, $all_request);
+
+                    }
+                }
+                $data['requests'] = $all_requests;
                 array_push($all_books, $data);
 
             }
@@ -321,6 +355,40 @@ class RegisterBookStoreController extends Controller
                 $data['category'] = $books_category->name;
                 $data['quantity'] = $book->book_quantity;
                 $data['isbn'] = $book->book_isbn;
+                $data['status'] = (isset($book->status) OR $book->status == 0)?'Not Approved':'Approved';
+
+                $all_requests = [];
+
+                $query0 = DB::table('book_store_request')
+                ->select('name', 'email', 'phone', 'address', 'book_id', 'quantity', 'status', 'id', 'book_id')
+                ->where(
+                    [
+                        ['book_id', '=', $book->id]
+                    ]
+                )
+                ->get();
+                if($query0){
+                    foreach($query0 as $request_book){
+                        $name = $request_book->name;
+                        $email = $request_book->email;
+                        $phone = $request_book->phone;
+                        $address = $request_book->address;
+                        $status = (isset($request_book->status) OR $request_book->status == 0)?'Not Delivered':'Delivered';
+                        $quantity = $request_book->quantity;
+                        $id = $request_book->id;
+
+                        $all_request['name'] = $name;
+                        $all_request['email'] = $email;
+                        $all_request['phone'] = $phone;
+                        $all_request['address'] = $address;
+                        $all_request['status'] = $status;
+                        $all_request['quantity'] = $quantity;
+                        $all_request['id'] = $id;
+                        array_push($all_requests, $all_request);
+
+                    }
+                }
+                $data['requests'] = $all_requests;
                 array_push($all_books, $data);
 
             }
@@ -455,6 +523,15 @@ class RegisterBookStoreController extends Controller
     public function book_remove(BookStoreBookRequest $request){
 
         $request->validated();
+        
+        $query0 = BookStore::where('id', $request->book_id)->first();
+        if(!$query0){
+            return response()->json([
+                'status_code' => Response::HTTP_UNAUTHORIZED,
+                'status' => 'error',
+                'message' => 'Book Store Not Fount',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
 
         BookStore::where('id', $request->book_id)->delete();
 

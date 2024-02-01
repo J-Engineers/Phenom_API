@@ -138,7 +138,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookapprove'])->name('bookshop.requests.bookstorebookapprove');
         Route::put('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookrevoke'])->name('bookshop.requests.bookstorebookrevoke');
         Route::delete('/v1/admin/bookstore/book', [BookStoreController::class, 'bookstorebookremove'])->name('bookshop.requests.bookstorebookremove');
-
         Route::post('/v1/admin/bookstore/request', [BookStoreController::class, 'completeRequest'])->name('bookshop.requests.completeRequest');
         Route::put('/v1/admin/bookstore/request', [BookStoreController::class, 'reopenRequest'])->name('bookshop.requests.reopenRequest');
         Route::delete('/v1/admin/bookstore/request', [BookStoreController::class, 'removeRequest'])->name('bookshop.requests.removeRequest');

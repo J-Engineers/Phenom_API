@@ -11,7 +11,7 @@ class GreatSchoolsSignUpRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,8 +23,7 @@ class GreatSchoolsSignUpRequest extends FormRequest
     {
         return [
             'email' => 'required|string|email',
-            'firstname' => 'required|string',
-            'lastname' => 'required|string',
+            'name' => 'required|string',
             'address' => 'required|string',
             'phone' => 'required|string',
             'state' => 'required|string',

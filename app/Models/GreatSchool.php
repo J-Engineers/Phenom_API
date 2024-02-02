@@ -35,6 +35,7 @@ class GreatSchool extends Model
         'token',
         'status',
         'rated',
+        'user_id',
     ];
 
     /**

@@ -46,6 +46,7 @@ class GreatSchoolController extends Controller
             [
                 ['token', '=', $request->token],
                 ['status', '=', 0],
+                ['great_school_id', '=', $school->id],
             ]
         )->first();
         return response()->json(
@@ -66,7 +67,12 @@ class GreatSchoolController extends Controller
         $user = auth()->user();
        
         $school = GreatSchool::where('user_id', $user->id)->first();
-        $school_request = GreatSchoolRequest::where('id', $request->request_id)->first();
+        $school_request = GreatSchoolRequest::where(
+            [
+                ['id', $request->request_id],
+                ['great_school_id', $school->id],
+            ]
+        )->first();
 
         if(!$school_request){
             return response()->json([

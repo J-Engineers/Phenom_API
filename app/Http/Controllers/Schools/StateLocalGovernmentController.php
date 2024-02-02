@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Schools;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\Schools\GreatSchoolsRequest;
 
 class StateLocalGovernmentController extends Controller

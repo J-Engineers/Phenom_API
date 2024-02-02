@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Requests\Admin\GreatSchoolsRequest;
+use App\Http\Requests\Admin\GreatSchoolRequest as RequestGreatSchoolRequest;
 use App\Http\Requests\Admin\GreatSchoolRateRequest;
 use App\Http\Requests\Admin\GreatSchoolUpdateRequest;
 use App\Http\Requests\Admin\GreatSchoolRequestRequest;
@@ -24,10 +25,6 @@ class GreatSchoolsController extends Controller
     public function signup(GreatSchoolsSignUpRequest $request){
 
         $request->validated();
-
-        if(auth()->user()){
-            auth()->user()->tokens()->delete();
-        }
 
         $user = auth()->user();
         if(!$user->is_admin === true){
@@ -64,10 +61,10 @@ class GreatSchoolsController extends Controller
         $temporal_password = mt_rand(100000, 999999);
 
         $verify_token = mt_rand(1000000, 9999999);
-        $to_name = $request->firstname." ".$request->lastname;
+        $to_name = $request->name;
         $to_email = $request->email;
         $data = array(
-           "name"=> $request->firstname." ".$request->lastname,
+           "name"=> $request->name,
            "body" => "Welcome to Phenom Platform, We are glad you have requested to enroll as an Education Body in our organization. 
                     We shall review your request and communicate with you further. Your temporal password is ".$temporal_password.", You are free to change it later.",
            "link" => env('APP_URL').'user/login'
@@ -86,17 +83,19 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $file = $request->file($request->picture);
+        $file = $request->file('picture');
         $name=time().$file->getClientOriginalName();
         $filePath = 'images/' . $name;
         $disk = Storage::disk('s3');
         $disk->put($filePath, file_get_contents($file));
         $base_path = $disk->url($filePath);
 
+        $mew_user_id = (string)Str::uuid();
+
         $password = Hash::make($temporal_password);
-        $user = User::create([
-            'id' => (string)Str::uuid(),
-            'user_name' => str_split($request->firstname)[0]." ".str_split($request->lastname)[0],
+        $user_new = User::create([
+            'id' => $mew_user_id,
+            'user_name' => str_split($request->name)[0]." ".str_split($request->name)[1],
             'email' => $request->email,
             'is_admin' => false,
             'activate' => true,
@@ -106,15 +105,15 @@ class GreatSchoolsController extends Controller
             'verify_email' => true,
             'email_verified_at' => Carbon::now(),
             'title' => "Mr./Mrs.",
-            'first_name' => $request->firstname,
-            'last_name' => $request->lastname,
+            'first_name' => $request->name,
+            'last_name' => '',
             'gender' => 'male or femalw',
             'user_type' => 'school',
             'address' => $request->address,
             'photo' => $base_path,
         ]);
 
-        if(!$user->id){
+        if(!$user_new->id){
             return response()->json([
                 'status_code' => Response::HTTP_UNAUTHORIZED,
                 'status' => 'error',
@@ -122,24 +121,28 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $school = GreatSchool::create([
-            'id' => (string)Str::uuid(),
-            'name' => $user->first_name. " ".$user->last_name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'address' => $user->address,
-            'state' => $request->state,
-            'picture' => $user->photo,
-            'localgovernment' => $request->localgovernment,
-            'description' => $request->description,
-            'population' => $request->population,
-            'male_or_female_or_both' => $request->male_or_female_or_both,
-            'day_or_boarding_or_both' => $request->day_or_boarding_or_both,
-            'private_or_government_or_both' => $request->private_or_government_or_both,
-            'token' => $verify_token,
-            'status' => 0,
-            'user_id' => $user->id,
-        ]);
+        $school = GreatSchool::create
+        (
+            [
+                'id' => (string)Str::uuid(),
+                'user_id' => $user_new->id,
+                'name' => $user_new->first_name,
+                'email' => $user_new->email,
+                'phone' => $user_new->phone,
+                'address' => $user_new->address,
+                'state' => $request->state,
+                'picture' => $user_new->photo,
+                'localgovernment' => $request->localgovernment,
+                'description' => $request->description,
+                'population' => $request->population,
+                'male_or_female_or_both' => $request->male_or_female_or_both,
+                'day_or_boarding_or_both' => $request->day_or_boarding_or_both,
+                'private_or_government_or_both' => $request->private_or_government_or_both,
+                'token' => $verify_token,
+                'status' => 0,
+                'rated' => 0,
+            ]
+        );
 
         return response()->json(
             [
@@ -147,7 +150,7 @@ class GreatSchoolsController extends Controller
                 'status' => 'success',
                 'message' => 'School signed up successfully',
                 'data' => [
-                    'user' => $user,
+                    'user' => $user_new,
                     'school' => $school,
                 ]
             ], Response::HTTP_CREATED
@@ -178,7 +181,7 @@ class GreatSchoolsController extends Controller
         );
     }
 
-    public function schoool(GreatSchoolRequest $request){
+    public function school(RequestGreatSchoolRequest $request){
         $request->validated();
 
         $user = auth()->user();
@@ -215,14 +218,14 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if(!$request->hasfile('picture'))
-        {
-            return response()->json([
-                'status_code' => Response::HTTP_UNAUTHORIZED,
-                'status' => 'error',
-                'message' => 'File not Found, upload a file for the school with the name picture',
-            ], Response::HTTP_UNAUTHORIZED);
-        }
+        // if(!$request->hasfile('picture'))
+        // {
+        //     return response()->json([
+        //         'status_code' => Response::HTTP_UNAUTHORIZED,
+        //         'status' => 'error',
+        //         'message' => 'File not Found, upload a file for the school with the name picture',
+        //     ], Response::HTTP_UNAUTHORIZED);
+        // }
 
 
         $School = GreatSchool::where('id',  $request->school_id)->first();
@@ -234,12 +237,12 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $file = $request->file($request->picture);
-        $name=time().$file->getClientOriginalName();
-        $filePath = 'images/' . $name;
-        $disk = Storage::disk('s3');
-        $disk->put($filePath, file_get_contents($file));
-        $base_path = $disk->url($filePath);
+        // $file = $request->file('picture');
+        // $name=time().$file->getClientOriginalName();
+        // $filePath = 'images/' . $name;
+        // $disk = Storage::disk('s3');
+        // $disk->put($filePath, file_get_contents($file));
+        // $base_path = $disk->url($filePath);
 
 
         $School->update(
@@ -248,7 +251,7 @@ class GreatSchoolsController extends Controller
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'state' => $request->state,
-                'picture' => $base_path,
+                // 'picture' => $base_path,
                 'localgovernment' => $request->localgovernment,
                 'description' => $request->description,
                 'population' => $request->population,
@@ -271,7 +274,7 @@ class GreatSchoolsController extends Controller
         );
     }
 
-    public function school_remove(GreatSchoolRequest $request){
+    public function school_remove(RequestGreatSchoolRequest $request){
 
         $request->validated();
         
@@ -284,8 +287,15 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        GreatSchool::where('id', $request->school_id)->delete();
-
+        $school = GreatSchool::where('id', $request->school_id)->first();
+        if(!$school){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'School Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        User::where('id', $school->user_id)->delete();
         return response()->json(
             [
                 'status_code' => Response::HTTP_CREATED,
@@ -297,7 +307,7 @@ class GreatSchoolsController extends Controller
         );
     }
 
-    public function school_approve(GreatSchoolRequest $request){
+    public function school_approve(RequestGreatSchoolRequest $request){
 
         $request->validated();
         
@@ -310,7 +320,16 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $school = GreatSchool::where('id', $request->school_id)->update([
+        $school = GreatSchool::where('id', $request->school_id)->first();
+        if(!$school){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'School Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+        
+        $school->update([
             'status' => 1
         ]);
 
@@ -326,7 +345,7 @@ class GreatSchoolsController extends Controller
         );
     }
 
-    public function school_disapprove(GreatSchoolRequest $request){
+    public function school_disapprove(RequestGreatSchoolRequest $request){
 
         $request->validated();
         
@@ -339,7 +358,16 @@ class GreatSchoolsController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $school = GreatSchool::where('id', $request->school_id)->update([
+        $school = GreatSchool::where('id', $request->school_id)->first();
+        if(!$school){
+            return response()->json([
+                'status_code' => Response::HTTP_NOT_FOUND,
+                'status' => 'error',
+                'message' => 'School Not Found'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $school->update([
             'status' => 0
         ]);
 
@@ -355,7 +383,7 @@ class GreatSchoolsController extends Controller
         );
     }
 
-    public function schoool_requests(GreatSchoolRequest $request){
+    public function schoool_requests(RequestGreatSchoolRequest $request){
         $request->validated();
 
         $user = auth()->user();

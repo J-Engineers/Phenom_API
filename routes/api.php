@@ -12,10 +12,14 @@ use App\Http\Controllers\Parent\ParantController;
 use App\Http\Controllers\Admin\BookStoreController;
 use App\Http\Controllers\Tutors\TutorAuthController;
 use App\Http\Controllers\Parent\ParentAuthController;
+use App\Http\Controllers\Admin\GreatSchoolsController;
+use App\Http\Controllers\Schools\GreatSchoolController;
 use App\Http\Controllers\Admin\LevelsSubjectsController;
 use App\Http\Controllers\BookStore\RequestBookController;
 use App\Http\Controllers\BookStore\BookStoreGuestController;
+use App\Http\Controllers\Schools\GreatSchoolGuestController;
 use App\Http\Controllers\BookStore\RegisterBookStoreController;
+use App\Http\Controllers\Schools\StateLocalGovernmentController;
 use App\Http\Controllers\Admin\TutorController as AdminTutorController;
 use App\Http\Controllers\Admin\ParentController as AdminParentController;
 
@@ -49,6 +53,11 @@ Route::get('/v1/public/bookstore/books', [BookStoreGuestController::class, 'book
 Route::get('/v1/public/bookstore/book', [BookStoreGuestController::class, 'book'])->name('bookstore.book');
 Route::post('/v1/public/bookstore/request/random', [RequestBookController::class, 'request_book_random'])->name('bookstore.request_book_random');
 Route::post('/v1/public/bookstore/request', [RequestBookController::class, 'request_book'])->name('bookstore.request');
+
+Route::get('/v1/public/schools/statelga', [StateLocalGovernmentController::class, 'data'])->name('schools.state.lga');
+Route::get('/v1/public/schools/rated', [GreatSchoolGuestController::class, 'toprated'])->name('schools.toprated');
+Route::get('/v1/public/schools/search', [GreatSchoolGuestController::class, 'search'])->name('schools.search');
+Route::post('/v1/public/schools/request', [GreatSchoolGuestController::class, 'request'])->name('schools.request');
 
 
 Route::post('/v1/user/registration/verify', [AuthController::class, 'send_registration_verification_email'])->name('user.verify')->middleware(ActiveUser::class);
@@ -146,6 +155,23 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::delete('/v1/admin/bookstore/randomrequest', [BookStoreController::class, 'removeRequest1'])->name('bookshop.requests.removeRequest1');
 
 
+        // admin - Great Schools Routes
+        
+        Route::get('/v1/admin/schools', [GreatSchoolsController::class, 'schools'])->name('schools.schools');
+        Route::post('/v1/admin/school', [GreatSchoolsController::class, 'signup'])->name('schools.school.add');
+        Route::get('/v1/admin/school', [GreatSchoolsController::class, 'school'])->name('schools.school.view');
+        Route::put('/v1/admin/school', [GreatSchoolsController::class, 'school_updates'])->name('schools.school.updates');
+        Route::delete('/v1/admin/school', [GreatSchoolsController::class, 'school_remove'])->name('schools.school.remove');
+        Route::post('/v1/admin/school/approve', [GreatSchoolsController::class, 'school_approve'])->name('schools.school.school_approve');
+        Route::post('/v1/admin/school/decline', [GreatSchoolsController::class, 'school_disapprove'])->name('schools.school.school_disapprove');
+        Route::get('/v1/admin/school/requests', [GreatSchoolsController::class, 'schoool_requests'])->name('schools.school.schoool_requests');
+        Route::get('/v1/admin/school/request', [GreatSchoolsController::class, 'schoool_request'])->name('schools.school.schoool_request');
+        Route::post('/v1/admin/school/request', [GreatSchoolsController::class, 'remove_schoool_request'])->name('schools.school.remove_schoool_request');
+        Route::post('/v1/admin/school/rate', [GreatSchoolsController::class, 'school_rate'])->name('schools.school.school_rate');
+        
+
+
+
 
         // Users Routes
         Route::get('/v1/user', [ProfileController::class, 'details'])->name('user.details');
@@ -191,6 +217,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::put('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_updates'])->name('bookstore.book.update');
             Route::post('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_add'])->name('bookstore.book.add');
             Route::delete('/v1/bookstore/book', [RegisterBookStoreController::class, 'book_remove'])->name('bookstore.book.remove');
+        });
+
+
+        // Schools Route
+        Route::group(['middleware' => 'SchoolAuthRoutes'], function(){
+            Route::get('/v1/schools/dashboard', [GreatSchoolController::class, 'dashboard'])->name('schools.dashboard');
+            Route::get('/v1/schools/request', [GreatSchoolController::class, 'request'])->name('schools.request');
+            Route::put('/v1/schools/approve', [GreatSchoolController::class, 'approve_request'])->name('schools.approve_request');
+            Route::post('/v1/schools/decline', [GreatSchoolController::class, 'decline_request'])->name('schools.decline_request');
         });
     
     });

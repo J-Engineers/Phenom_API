@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Http\Requests\Schools\GreatSchoolsRequest;
 use App\Http\Requests\Schools\GreatSchoolSearchRequest;
 use App\Http\Requests\Schools\GreatSchoolGuestRequestRequest;
+use App\Models\GreatSchoolRequest;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
@@ -56,7 +57,6 @@ class GreatSchoolGuestController extends Controller
             ], Response::HTTP_CREATED
         );
     }
-
 
     public function request(GreatSchoolGuestRequestRequest $request){
 
@@ -111,28 +111,28 @@ class GreatSchoolGuestController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        $file = $request->file($request->picture);
+        $file = $request->file('picture');
         $name=time().$file->getClientOriginalName();
         $filePath = 'images/' . $name;
         $disk = Storage::disk('s3');
         $disk->put($filePath, file_get_contents($file));
         $picture_path = $disk->url($filePath);
 
-        $file = $request->file($request->transcript);
+        $file = $request->file('transcript');
         $name=time().$file->getClientOriginalName();
         $filePath = 'images/' . $name;
         $disk = Storage::disk('s3');
         $disk->put($filePath, file_get_contents($file));
         $transcript_path = $disk->url($filePath);
 
-        $file = $request->file($request->prev_school_note);
+        $file = $request->file('prev_school_note');
         $name=time().$file->getClientOriginalName();
         $filePath = 'images/' . $name;
         $disk = Storage::disk('s3');
         $disk->put($filePath, file_get_contents($file));
         $prev_school_note_path = $disk->url($filePath);
         
-        $school = GreatSchool::create([
+        $school = GreatSchoolRequest::create([
             'id' => (string)Str::uuid(),
             'email' => $request->email,
             'name' => $request->name,

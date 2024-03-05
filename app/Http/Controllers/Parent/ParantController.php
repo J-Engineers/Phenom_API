@@ -871,12 +871,20 @@ class ParantController extends Controller
         $request->validated();
         
         $auth = auth()->user();
+        $parent = ParentUser::where('user_id', $auth->id)->first();
+        if(!$parent){
+            return response()->json([
+                'status_code' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                "status" => "error",
+                'message' => 'Parent not found',
+            ], Response::HTTP_NOT_FOUND); // 404
+        }
         
 
         $search_learner = Learner::where(
             [
                 ['learners_name', '=', $request->learner_name],
-                ['parent_id', '=', $auth->id],
+                ['parent_id', '=', $parent->id],
             ]
         )->first();
         if($search_learner){
@@ -890,10 +898,12 @@ class ParantController extends Controller
 
         $learner = Learner::create([
             'id' => (string)Str::uuid(),
-            'parent_id' => $auth->id,
+            'parent_id' => $parent->id,
             'learners_name' => $request->learner_name,
             'learners_dob' => $request->learner_dob,
             'learners_gender' => $request->learner_gender,
+            'other_subjects' => $request->others,
+
         ]);
 
 
@@ -944,10 +954,11 @@ class ParantController extends Controller
         $request->validated();
         
         $auth = auth()->user();
+        $parent = ParentUser::where('user_id', $auth->id)->first();
 
         $search_learner = Learner::where(
             [
-                ['parent_id', '=', $auth->id],
+                ['parent_id', '=', $parent->id],
             ]
         )->get();
         if(!$search_learner){

@@ -58,7 +58,7 @@ Route::get('/v1/public/schools/statelga', [StateLocalGovernmentController::class
 Route::get('/v1/public/schools/rated', [GreatSchoolGuestController::class, 'toprated'])->name('schools.toprated');
 Route::get('/v1/public/schools/search', [GreatSchoolGuestController::class, 'search'])->name('schools.search');
 Route::post('/v1/public/schools/request', [GreatSchoolGuestController::class, 'request'])->name('schools.request');
-
+Route::get('/v1/public/schools/school', [GreatSchoolGuestController::class, 'school'])->name('schools.school.school');
 
 Route::post('/v1/user/registration/verify', [AuthController::class, 'send_registration_verification_email'])->name('user.verify')->middleware(ActiveUser::class);
 Route::post('/v1/user/login', [AuthController::class, 'login'])->name('user.login')->middleware(ActiveUser::class);
@@ -164,6 +164,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::delete('/v1/admin/school', [GreatSchoolsController::class, 'school_remove'])->name('schools.school.remove');
         Route::post('/v1/admin/school/approve', [GreatSchoolsController::class, 'school_approve'])->name('schools.school.school_approve');
         Route::post('/v1/admin/school/decline', [GreatSchoolsController::class, 'school_disapprove'])->name('schools.school.school_disapprove');
+        Route::get('/v1/admin/school/requests/all', [GreatSchoolsController::class, 'schoool_requestss'])->name('schools.school.schoool_requestss');
         Route::get('/v1/admin/school/requests', [GreatSchoolsController::class, 'schoool_requests'])->name('schools.school.schoool_requests');
         Route::get('/v1/admin/school/request', [GreatSchoolsController::class, 'schoool_request'])->name('schools.school.schoool_request');
         Route::post('/v1/admin/school/request', [GreatSchoolsController::class, 'remove_schoool_request'])->name('schools.school.remove_schoool_request');

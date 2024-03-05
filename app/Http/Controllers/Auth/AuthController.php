@@ -58,7 +58,7 @@ class AuthController extends Controller
             "body" => "Welcome to Phenom Platform, 
             We are glad you are here. Visit the Link below to begin. 
             You requested to reset your password.",
-            "link" => env('APP_URL').'/password/forgot',
+            "link" => env('APP_URL').'/tutor/reset',
             'token' => $otp
             );
         
@@ -141,7 +141,7 @@ class AuthController extends Controller
         $data = array(
            "name"=> $request->user_name,
            "body" => "Welcome to Phenom Platform, We are glad you are here. Type in this token in next page or click on the link below to open the page",
-           "link" => env('APP_URL').'/registration/verify',
+           "link" => env('APP_URL').'/admin/verification',
            'token' => $verify_token
         );
        
@@ -249,7 +249,7 @@ class AuthController extends Controller
         $data = array(
            "name"=> $user->user_name,
            "body" => "Welcome to Phenom Platform, We are glad you are here. Visit the Link below to begin",
-           "link" => env('APP_URL').'/registration/verify/email'
+           "link" => env('APP_URL').'/admin/verification'
         );
        
         if(!Mail::send("emails.registrationVerification", $data, function($message) use ($to_name, $to_email) {
@@ -354,7 +354,7 @@ class AuthController extends Controller
            "body" => "Welcome to Phenom Platform, 
            We are glad you are here. Visit the Link below to begin. 
            You requested to reset your password.",
-           "link" => env('APP_URL').'/password/forgot',
+           "link" => env('APP_URL').'/tutor/reset',
            'token' => $otp
         );
        
@@ -429,7 +429,7 @@ class AuthController extends Controller
            "body" => "Welcome to Phenom Platform, 
            We are glad you are here. Visit the Link below to begin. 
            You password  reset was successful.",
-           "link" => env('APP_URL').'/login'
+           "link" => env('APP_URL').'/admin/login'
         );
        
         if(!Mail::send("emails.registrationVerification", $data, function($message) use ($to_name, $to_email) {

@@ -24,6 +24,7 @@ class Lessons extends Model
         'lesson_goals',
         'lesson_mode',
         'lesson_period',
+        'other_subjects',
     ];
 
     /**

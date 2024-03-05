@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Schools;
 use Storage;
 
 use App\Models\GreatSchool;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\GreatSchoolRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\Schools\SchoolRequest;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Requests\Schools\GreatSchoolsRequest;
 use App\Http\Requests\Schools\GreatSchoolSearchRequest;
 use App\Http\Requests\Schools\GreatSchoolGuestRequestRequest;
-use App\Models\GreatSchoolRequest;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
 
 class GreatSchoolGuestController extends Controller
 {
@@ -31,6 +32,27 @@ class GreatSchoolGuestController extends Controller
                 'message' => 'Top School data',
                 'data' => [
                     'top_schools' => $school,
+                ]
+            ], Response::HTTP_CREATED
+        );
+    }
+
+    public function school(SchoolRequest $request){
+        $school = GreatSchool::where(
+            [
+                ['rated', '>', 3],
+                ['status', '=', 1],
+                ['id', '=', $request->school_id],
+            ]
+        )->first();
+        
+        return response()->json(
+            [
+                'status_code' => Response::HTTP_CREATED,
+                'status' => 'success',
+                'message' => 'Top School data',
+                'data' => [
+                    'school' => $school,
                 ]
             ], Response::HTTP_CREATED
         );
@@ -91,15 +113,39 @@ class GreatSchoolGuestController extends Controller
         $verify_token = mt_rand(1000000, 9999999);
         $to_name = $request->name;
         $to_email = $request->email;
+        
+
         $data = array(
-           "name"=> $request->name,
-           "body" => "Welcome to Phenom Platform, We are glad you have requested a discounted entry fee to great partners of our organization. 
-                    We shall review your request and communicate with you further. Take your token to the school. Your token: ".$verify_token,
-           "link" => env('APP_URL')
-        );
+            "name"=> $request->name,
+            "p1" => "Welcome to ".env('APP_NAME')." – your premier destination for educational excellence! 
+                 We are thrilled to have you join our community dedicated to connecting learners, parents, tutors, schools, 
+                 and bookstores seamlessly.At ".env('APP_NAME').", we offer a diverse range of services to cater to your educational needs:",
+           "p2" => "Whether you're seeking online or in-person classes, 
+                 we connect you with exceptional tutors closest to you who are committed to helping you achieve your learning goals.",
+           "p3" => "Easily discover and connect with top-notch schools in your vicinity, 
+                 ensuring you find the perfect educational institution that meets your requirements.",
+           "p4" => "Access a vast array of books from reputable bookstores right at your 
+                 fingertips. With just a few clicks, you can order the resources you need to enhance your learning journey.",
+           "p5" => "By signing up with ".env('APP_NAME').", you've taken the first step towards unlocking a world of educational opportunities. 
+                 Our user-friendly platform is designed to streamline your learning experience, providing you with the tools and resources 
+                 necessary to succeed.",
+           "p6" => "We shall review your request and communicate with you further. Take your token to the school. Your token: ".$verify_token,
+           "p7" => "We're here to support you every step of the way. Should you have any questions, feedback, or suggestions, please don't hesitate 
+                 to reach out to our dedicated customer support team.",
+           "p8" => "Once again, welcome to ".env('APP_NAME')."! Get ready to embark on an enriching learning journey unlike any other.",
+           "p9" => "Best Regards,",
+           "p10" => env('APP_NAME')." Team",
+           "p11" => "P.S. Stay tuned for exciting updates, exclusive offers, and valuable educational insights delivered straight to your inbox!",
+           
+           "d1" => "1. Expert Tutor Connections via phenomtutors:",
+           "d2" => "2. School Search and Connection via phenomconnect:",
+           "d3" => "3. Effortless Book Procurement via the bookstore:",
+           
+            "link" => env('APP_URL')
+         );
        
         if(!Mail::send("emails.registrationtutor", $data, function($message) use ($to_name, $to_email) {
-           $message->to($to_email, $to_name)->subject("Phenom Great Schools Request");
+           $message->to($to_email, $to_name)->subject(env('APP_NAME')." Great Schools Request");
            $message->from(env("MAIL_USERNAME", "jeorgejustice@gmail.com"), "Welcome");
         })){
 

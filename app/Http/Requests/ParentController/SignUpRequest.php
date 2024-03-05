@@ -45,6 +45,7 @@ class SignUpRequest extends FormRequest
             'description_of_learner' => 'required|string',
             'lesson_commence' => 'required|string',
             'education_level_id' => 'required|string|exists:education_levels,id',
+            'others' => 'string',
            
             'total_subjects' => 'required|integer',
             'api_key' => [

@@ -79,14 +79,37 @@ class RegisterBookStoreController extends Controller
         $to_name = $request->firstname." ".$request->lastname;
         $to_email = $request->email;
         $data = array(
-           "name"=> $request->firstname." ".$request->lastname,
-           "body" => "Welcome to Phenom Platform, We are glad you have requested to enroll as a Book Store Owner in our organization. 
-                    We shall review your request and communicate with you further. Your temporal password is ".$temporal_password.", You are free to change it later.",
-           "link" => env('APP_URL').'user/login'
-        );
+            "name"=> $request->firstname." ".$request->lastname,
+            "p1" => "Welcome to ".env('APP_NAME')." – your premier destination for educational excellence! 
+                 We are thrilled to have you join our community dedicated to connecting learners, parents, tutors, schools, 
+                 and bookstores seamlessly.At ".env('APP_NAME').", we offer a diverse range of services to cater to your educational needs:",
+           "p2" => "Whether you're seeking online or in-person classes, 
+                 we connect you with exceptional tutors closest to you who are committed to helping you achieve your learning goals.",
+           "p3" => "Easily discover and connect with top-notch schools in your vicinity, 
+                 ensuring you find the perfect educational institution that meets your requirements.",
+           "p4" => "Access a vast array of books from reputable bookstores right at your 
+                 fingertips. With just a few clicks, you can order the resources you need to enhance your learning journey.",
+           "p5" => "By signing up with ".env('APP_NAME').", you've taken the first step towards unlocking a world of educational opportunities. 
+                 Our user-friendly platform is designed to streamline your learning experience, providing you with the tools and resources 
+                 necessary to succeed.",
+           "p6" => "To get started, here is your temporary password: ".$temporal_password.". You can use this to sign in to the platform and 
+                 explore all that Phenom has to offer.",
+           "p7" => "We're here to support you every step of the way. Should you have any questions, feedback, or suggestions, please don't hesitate 
+                 to reach out to our dedicated customer support team.",
+           "p8" => "Once again, welcome to ".env('APP_NAME')."! Get ready to embark on an enriching learning journey unlike any other.",
+           "p9" => "Best Regards,",
+           "p10" => env('APP_NAME')." Team",
+           "p11" => "P.S. Stay tuned for exciting updates, exclusive offers, and valuable educational insights delivered straight to your inbox!",
+           
+           "d1" => "1. Expert Tutor Connections via phenomtutors:",
+           "d2" => "2. School Search and Connection via phenomconnect:",
+           "d3" => "3. Effortless Book Procurement via the bookstore:",
+           
+            "link" => env('APP_URL').'publisher/signup'
+         );
        
         if(!Mail::send("emails.registrationtutor", $data, function($message) use ($to_name, $to_email) {
-           $message->to($to_email, $to_name)->subject("Phenom Book Stores Registration");
+           $message->to($to_email, $to_name)->subject(env('APP_NAME')." Book Stores Registration");
            $message->from(env("MAIL_USERNAME", "jeorgejustice@gmail.com"), "Welcome");
         })){
 

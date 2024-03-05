@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('lesson_goals');
             $table->string('lesson_mode');
             $table->string('lesson_period');
+            $table->string('other_subjects');
             $table->timestamps();
         });
     }

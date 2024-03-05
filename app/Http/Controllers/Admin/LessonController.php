@@ -656,6 +656,7 @@ class LessonController extends Controller
 
            
             'total_subjects' => 'required|integer',
+            'others' => 'string',
             'api_key' => 'required|string',
         ]); // request body validation rules
 
@@ -729,6 +730,8 @@ class LessonController extends Controller
             'learners_name' => $request->learners_name,
             'learners_dob' => $request->learners_dob,
             'learners_gender' => $request->learners_gender,
+            'other_subjects' => $request->others,
+
         ]);
 
         $lesson = Lessons::create([

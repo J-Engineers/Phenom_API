@@ -14,20 +14,23 @@ Hosted Documentation
 https://www.postman.com/red-meadow-5256/workspace/red-meadow-5256-s-public-workspace/collection/10053626-6b7cf9aa-887b-42e3-aa40-2a8be952c92d?action=share&creator=10053626
 
 
+
 Hosted API
 
-http://phenom.gjengineer.com.ng/api/
+http://blueprint.gjengineer.com.ng/api/
+
 
 
 Hosted Repository
 
-https://github.com/J-Engineers/Phenom_API
+https://github.com/J-Engineers/TheBlueprint_API
+
 
 
 Hosted Design
 
+https://www.figma.com/design/0dFtkhp2qK5bECeOI9gvXu/BluePrint-Website?node-id=0-1&t=zCuM8P8cbj0aj8vC-0
 
-https://www.figma.com/file/svuAMOfD7AEGfAVcb8tG8w/Phenom-Tutor-site?resource_type=file
 
 
 Hosted API KEY
